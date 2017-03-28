@@ -1,0 +1,8 @@
+prefix=/home/jimmy/Documents/CMPUT412/competition4_ws/install
+
+Name: easten_egg_hunting
+Description: Description of easten_egg_hunting
+Version: 1.0.0
+Cflags: 
+Libs: -L/home/jimmy/Documents/CMPUT412/competition4_ws/install/lib 
+Requires: 
