@@ -1,0 +1,8 @@
+prefix=/home/jimmy/Documents/CMPUT412/Egg-hunting/competition4_ws/devel
+
+Name: target_searching
+Description: Description of target_searching
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/jimmy/Documents/CMPUT412/Egg-hunting/competition4_ws/devel/lib 
+Requires: 
