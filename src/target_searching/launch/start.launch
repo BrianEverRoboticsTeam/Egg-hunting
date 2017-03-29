@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
+    <node name="ultrasonic" pkg="target_searching" type="ultrasonic.py"/>
+    <node name="logo_detector" pkg="target_searching" type="matching_webcam_distance.py"/>
+</launch>
