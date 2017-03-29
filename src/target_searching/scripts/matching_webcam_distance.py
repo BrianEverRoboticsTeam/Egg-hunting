@@ -2,39 +2,51 @@
 import rospy
 import cv2
 import numpy as np
+import cv_bridge
 from scipy.misc import imresize
 from std_msgs.msg import String
+from sensor_msgs.msg import Image
 import cPickle as pickle
+import os
 
 class LogoDetector:
     def __init__(self):
         self.rate = rospy.Rate(10)
         self.ultrasonic_sub = rospy.Subscriber('ultrasonic', String,
                 self.ultrasonic_callback)
+        self.image_sub = rospy.Subscriber('usb_cam/image_raw', Image,
+                self.image_callback)
+        self.pub = rospy.Publisher('detector', String, queue_size=0)
+        self.bridge = cv_bridge.CvBridge()
         self.dist = None
-        self.cam = cv2.VideoCapture(0)
         self.image = None
 
+        root = os.path.dirname(os.path.abspath(__file__))
+
         # Prepare templates at multiple scales:
-        self.template_original = cv2.imread('logo.png',0)
-        self.template_original = imresize(self.template_original, 0.8)
-        self.th, self.tw = self.template_original.shape
-        self.template_original = cv2.GaussianBlur(self.template_original, (9,9), 0)
-        # self.template_original = cv2.blur(self.template_original, (9,9))
-        cv2.imshow('original template', self.template_original)
-        # scales = np.linspace(0.1, 0.8, 20)
-        # self.templates = []
-        # for scale in scales:
-            # self.templates.append(imresize(self.template_original, scale))
+        self.template_original = cv2.imread(root+'/logo.png',0)
 
-        # self.kh_table = []
-        # self.kw_table = []
+        self.logo = cv2.imread(root+'/logo.png', 0)
+        self.ar_tag = cv2.imread(root+'/ar_tag.png', 0)
 
-        with open('param/khw.bin', 'rb') as f:
+        self.logo = imresize(self.logo, 0.4)
+        self.ar_tag = imresize(self.ar_tag, 0.4)
+
+        self.logo = cv2.GaussianBlur(self.logo, (9,9), 0)
+        self.ar_tag = cv2.GaussianBlur(self.ar_tag, (9,9), 0)
+
+
+        # cv2.imshow('logo', self.logo)
+        # cv2.imshow('ar_tag', self.ar_tag)
+
+        with open(root+'/param/khw.bin', 'rb') as f:
             self.kh, self.kw = pickle.load(f)
 
     def ultrasonic_callback(self, msg):
         self.dist = int(msg.data)
+
+    def image_callback(self, msg):
+        self.image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
 
     def detection(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -48,31 +60,8 @@ class LogoDetector:
         for meth in methods:
             method = eval(meth)
 
-
-
-
-
-            template = self.template_original
-            # x0, y0 = p0
-            # x1, y1 = p1
-            # depth = self.depth.copy()
-            # region = depth[y0:y1, x0:x1]
-            # dist = np.nanmean(region.astype(np.float32))
-            # if dist < 10:
-                # cv2.imshow(meth, frame)
-                # continue
-
             dist = self.dist
-            print 'dist:', dist
-
-            # w = int(round(101674.69 / dist))
-            # h = int(round(128121.20 / dist))
-
-            # w = int(round(104947.70 / dist))
-            # h = int(round(132350.72 / dist))
-
-            # w = int(round(157535.000000 / dist))
-            # h = int(round(198044.000000 / dist))
+            # print 'dist:', dist
 
             w = int(round(self.kw / dist))
             h = int(round(self.kh / dist))
@@ -90,73 +79,46 @@ class LogoDetector:
             tp1 = tx1, ty1
             cv2.rectangle(frame, tp0, tp1, (0,255,0), 2)
 
-            template = imresize(template, (h, w))
-            res = cv2.matchTemplate(gray, template, method)
-            loc = np.where(res > 0.45)
-            for pt in zip(*loc[::-1]):
-                cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
-            cv2.imshow(meth, frame)
+            # template = imresize(template, (h, w))
+            logo = imresize(self.logo, (h, w))
+            ar_tag = imresize(self.ar_tag, (h, w))
+
+            res_logo = cv2.matchTemplate(gray, logo, method)
+            res_ar = cv2.matchTemplate(gray, ar_tag, method)
 
 
+            # loc_logo = np.where(res_logo > 0.45)
+            # for pt in zip(*loc_logo[::-1]):
+                # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
 
-
-
-
-            # Apply template Matching
-            # for template in self.templates:
-                # w, h = template.shape[::-1]
-                # res = cv2.matchTemplate(gray,template,method)
-
-                # # normalize for imshow:
-                # # resimg = res / np.max(np.abs(res)) * 127.5 + 127.5
-                # # resimg = resimg.astype(np.uint8)
-                # # cv2.imshow('resimg'+str(scale), resimg)
-
-                # found = False
-                # loc = np.where(res > 0.7)
-                # for pt in zip(*loc[::-1]):
-                    # dist = self.dist
-                    # # kw = w / dist
-                    # # kh = h / dist
-                    # kw = w * dist
-                    # kh = h * dist
-                    # self.kw_table.append(kw)
-                    # self.kh_table.append(kh)
-                    # print 'dist:%f w:%d h:%d kw:%f kh:%f\n'%(dist, w, h, kw, kh)
-                    # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
-                    # found = True
-                # if found:
-                    # break
+            # loc_ar = np.where(res_ar > 0.45)
+            # for pt in zip(*loc_ar[::-1]):
+                # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,128,255), 2)
             # cv2.imshow(meth, frame)
-                
+
+            # print loc_logo
+            if res_logo.max() > 0.45 or res_ar.max() > 0.45:
+                self.pub.publish('True')
+            else:
+                self.pub.publish('False')
+
 
 
     def spin(self):
-        while True:
+        while not rospy.is_shutdown():
             if self.dist == None:
                 continue
-
-            ret, self.image = self.cam.read()
-            assert ret == True
+            if self.image == None:
+                continue
 
             frame = self.image.copy()
             self.detection(frame)
 
-            if cv2.waitKey(1) & 0xff == ord('q'):
-                break
+            # if cv2.waitKey(1) & 0xff == ord('q'):
+                # break
+            self.rate.sleep()
 
 
-        # kh_array = np.array(self.kh_table, dtype=np.float32)
-        # kw_array = np.array(self.kw_table, dtype=np.float32)
-        # kh_mean = np.mean(kh_array)
-        # kh_median = np.median(kh_array)
-        # kw_mean = np.mean(kw_array)
-        # kw_median = np.median(kw_array)
-        # print 'Summary:'
-        # print 'kh_mean:%f kh_median:%f'%(kh_mean, kh_median)
-        # print 'kw_mean:%f kw_median:%f'%(kw_mean, kw_median)
-
-        self.cam.release()
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':

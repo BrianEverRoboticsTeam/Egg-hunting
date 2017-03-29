@@ -5,6 +5,6 @@
         <arg name="map_file" value="$(find egg_navigation)/map/map.yaml">
     </include>
 
-    <!--<node pkg="egg_navigation" type="patrol.py">-->
+    <!--<node name="patrol" pkg="egg_navigation" type="patrol.py">-->
     <!--</node>-->
 </launch>

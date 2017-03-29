@@ -62,7 +62,7 @@ if __name__ == '__main__':
     while not running:
         pass
     
-    while True:
+    while not rospy.is_shutdown():
     # for _ in range(3):
         for pose in waypoints:
             curr_pose = pose
