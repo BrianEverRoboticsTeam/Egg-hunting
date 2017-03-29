@@ -1,7 +1,16 @@
 #!/usr/bin/python
+
 import numpy as np
-import cv2
+import rospy, cv2, cv_bridge
 from matplotlib import pyplot as plt
+from sensor_msgs.msg import Image
+from rospy.numpy_msg import numpy_msg
+from rospy_tutorials.msg import Floats
+
+# Load previously saved data
+npzfile = np.load('test.npz')
+mtx = npzfile['arr_0']
+dist = npzfile['arr_1']
 
 def draw(img, imgpts):
     corner = tuple(imgpts[0].ravel())
@@ -18,34 +27,11 @@ def prepare_solvePnP(good_src_pts):
         src_pts_array[i][0][2] = 0.0
     return src_pts_array
 
-# Load previously saved data
-import os
-root = os.path.dirname(os.path.abspath(__file__))
-# print(root)
-npzfile = np.load(root + '/asus_n56z_cam_calibration_files/calibrationdata/test.npz')
-# npzfile = np.load(root + '/asus_xtion_cam_calibration_files/test.npz')
-mtx = npzfile['arr_0']
-dist = npzfile['arr_1']
+def image_callback(msg):
+    global detect, img1, kp1, des1
 
-# There is a bug in opencv3.0> with failure in orb.compute, this is a
-# temp fix:
-cv2.ocl.setUseOpenCL(False)
+    img2 = bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
 
-cam = cv2.VideoCapture(0)
-MIN_MATCH_COUNT = 10
-
-WORLD_RATIO = 135.5/0.0555
-
-img1 = cv2.imread('logo.png')   # queryImage
-orb = cv2.ORB_create()#nfeatures=50, nlevels=1)
-# orb = cv2.ORB()
-kp1, des1 = orb.detectAndCompute(img1,None)
-
-axis = np.float32([[0,0,0], [100,0,0], [0,100,0], [0,0,-100]]).reshape(-1,3)
-
-while True:
-    ret, img2 = cam.read()
-    assert ret == True
     kp2, des2 = orb.detectAndCompute(img2,None)
 
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
@@ -65,19 +51,8 @@ while True:
         print("Vision blocked!")
         cv2.imshow('output', output)
         if cv2.waitKey(1) & 0xff == ord('q'):
-            break
-        continue
-
-
-    # good = matche
-
-    # matches = bf.knnMatch(des1, des2, k=2)
-
-    # Apply ratio test
-    # good = []
-    # for m,n in matches:
-    #     if m.distance < 0.75*n.distance:
-    #         good.append([m])
+            return
+        return
 
     if len(matches)>MIN_MATCH_COUNT:
         src_pts = np.float32([ kp1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
@@ -85,8 +60,6 @@ while True:
 
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
         matchesMask = mask.ravel().tolist()
-
-        # print(type(matches))
 
         good_matches = []
         good_src_pts = []
@@ -107,7 +80,6 @@ while True:
         perfect_src_pts = np.float32([ kp1[m.queryIdx].pt for m in perfect_matches ]).reshape(-1,1,2)
         perfect_dst_pts = np.float32([ kp2[m.trainIdx].pt for m in perfect_matches ]).reshape(-1,1,2)
 
-
         try:
             M2, mask2 = cv2.findHomography(perfect_src_pts, perfect_dst_pts, cv2.RANSAC,5.0)
             matchesMask2 = mask2.ravel().tolist()
@@ -117,7 +89,6 @@ while True:
             M = M2
             matchesMask = matchesMask2
 
-        # print(good2)
         print("inliers num: ", count)
 
         # bounding box
@@ -139,7 +110,16 @@ while True:
         if count > 20:
             img2 = draw(img2, imgpts)
 
-            print "rvecs:\n", rvecs, "\n", "tvecs:\n", tvecs / (np.ones((3,1)) * WORLD_RATIO), "\n===========\n"
+            pose = np.array([tvecs[0],tvecs[1],tvecs[2],rvecs[0],rvecs[1],rvecs[2]], dtype=np.float32)
+            print("tvecs:")
+            print(tvecs)
+            print("rvecs:")
+            print(rvecs)
+            # print("pose:")
+            # print(pose)
+            pub.publish(pose)
+
+            #print "rvecs:\n", rvecs, "\n", "tvecs:\n", tvecs / (np.ones((3,1)) * WORLD_RATIO), "\n===========\n"
 
         draw_params = dict(matchColor = (0,255,0), # draw matches in green color
                         singlePointColor = None,
@@ -153,15 +133,38 @@ while True:
         print "Not enough matches are found - %d/%d" % (len(matches),MIN_MATCH_COUNT)
         matchesMask = None
 
-
-    # print(M)
-    cv2.imshow('output', output)
-    if cv2.waitKey(1) & 0xff == ord('q'):
-        break
-
-    # img3 = draw_matches(img1, kp1, img2, kp2, good)
-    # plt.imshow(img3, 'gray'),plt.show()
+    cv2.imshow('logo_track', output)
+    cv2.waitKey(1)
 
 
-cam.release()
+
+
+global detect, img1, kp1, des1
+detect = False
+
+# There is a bug in opencv3.0> with failure in orb.compute, this is a
+# temp fix:
+cv2.ocl.setUseOpenCL(False)
+
+cam = cv2.VideoCapture(0)
+MIN_MATCH_COUNT = 10
+
+WORLD_RATIO = 135.5/0.0555
+
+img1 = cv2.imread('logo.jpg')   # queryImage
+orb = cv2.ORB_create()#nfeatures=50, nlevels=1)
+# orb = cv2.ORB()
+kp1, des1 = orb.detectAndCompute(img1,None)
+
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+axis = np.float32([[0,0,0], [100,0,0], [0,100,0], [0,0,-100]]).reshape(-1,3)
+bridge = cv_bridge.CvBridge()
+
+rospy.init_node('logo_pose_reader')
+pub = rospy.Publisher('logo_pose', numpy_msg(Floats), queue_size=10)
+#image_sub = rospy.Subscriber('usb_cam/image_raw', Image, image_callback)
+image_sub = rospy.Subscriber('camera/rgb/image_raw', Image, image_callback)
+
+rospy.spin()
+
 cv2.destroyAllWindows()
