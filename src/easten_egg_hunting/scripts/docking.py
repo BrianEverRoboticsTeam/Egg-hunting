@@ -46,7 +46,7 @@ def image_callback(msg):
             rvecs, tvecs, inliers = cv2.solvePnPRansac(objp, corners, mtx, dist)
 
             shipped_imgpts, shipped_jac = cv2.projectPoints(shipped_axis, rvecs, tvecs, mtx, dist)
-            # shipped_draw(img,shipped_imgpts)
+            shipped_draw(img,shipped_imgpts)
 
             twist.linear.x = 0.1 # slow approching
             if twist_last.angular.z == 0:
@@ -205,7 +205,7 @@ def image_callback(msg):
 
 
     cv2.imshow("window", img)
-    cv2.waitKey(10)
+    cv2.waitKey(1)
 
 from sensor_msgs.msg import Joy
 
@@ -226,7 +226,7 @@ box_points = np.float32([[0,0,0], [0,5,0], [7,5,0], [7,0,0],
 
 
 bridge = cv_bridge.CvBridge()
-cv2.namedWindow("window", 1)
+# cv2.namedWindow("window", 1)
 twist = Twist()
 twist_last = Twist()
 
@@ -242,10 +242,10 @@ is_on_operation = False
 
 image_sub = rospy.Subscriber('camera/rgb/image_raw', Image, image_callback)
 cmd_vel_pub = rospy.Publisher('cmd_vel_safe', Twist, queue_size=1)
-percise_cmd_pub = rospy.Publisher('control/percise_command',
+percise_cmd_pub = rospy.Publisher('control/precise_command',
                                    Twist, queue_size=1)
 
-rospy.init_node('demo5')
+rospy.init_node('vision_docking_node')
 rate = rospy.Rate(10)
 while not rospy.is_shutdown():
     rate.sleep()

@@ -18,7 +18,13 @@ goal_angle_dir = 1
 
 mode = "stop"
 
+def deactivate():
+    global mode, twist
 
+    mode = "stop"
+    twist = Twist()
+    feedback_pub.publish(mode)
+    cmd_vel_pub.publish(twist)
 
 def odom_callback(msg):
     global last_odom_time, twist_last, twist, goal_distance, goal_angle
@@ -61,7 +67,8 @@ def odom_callback(msg):
         else:
             twist.linear.x = 0
             last_odom_time = None
-            mode = "stop"
+            deactivate()
+
         print("Distance to target:", goal_distance)
 
     if(mode == "turning" or goal_angle > 0):
@@ -77,7 +84,7 @@ def odom_callback(msg):
         else:
             twist.angular.z = 0
             last_odom_time = None
-            mode = "stop"
+            deactivate()
 
         """ aggrasive but not accurate version """
         """
@@ -88,17 +95,15 @@ def odom_callback(msg):
             twist.angular.z = goal_angle*2 # acurate
         else:
             twist.angular.z = 0
-            mode = "stop"
+            deactivate()
         """
 
         twist.angular.z = twist.angular.z * goal_angle_dir
 
         print("Angle to target:", goal_angle)
 
-    if(mode == "stop"):
-        twist = Twist()
-
-    cmd_vel_pub.publish(twist)
+    if(mode != "stop"):
+        cmd_vel_pub.publish(twist)
 
 
 """
@@ -128,12 +133,14 @@ def command_callback(msg):
 
 
 if __name__ == '__main__':
-    rospy.init_node('percise_control')
+    rospy.init_node('percise_control_node')
 
     odom_sub = rospy.Subscriber('odom',Odometry, odom_callback)
-    command_sub = rospy.Subscriber('control/percise_command',Twist, command_callback)
+    command_sub = rospy.Subscriber('control/precise_command',Twist, command_callback)
     cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop',
                                        Twist, queue_size=1)
+    feedback_pub = rospy.Publisher('control/precise_command/feedback',
+                                       String, queue_size=1)
 
     rate = rospy.Rate(100)
     while not rospy.is_shutdown():
