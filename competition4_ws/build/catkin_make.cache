@@ -1,2 +1,0 @@
-easten_egg_hunting
--DCATKIN_DEVEL_PREFIX=/home/jimmy/Documents/CMPUT412/competition4_ws/devel -DCMAKE_INSTALL_PREFIX=/home/jimmy/Documents/CMPUT412/competition4_ws/install -G Unix Makefiles
