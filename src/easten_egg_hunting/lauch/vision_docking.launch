@@ -1,0 +1,15 @@
+<launch>
+  <!-- <node name="smoother" pkg="demo1" type="driver_smoother.py">
+    <remap from="cmd_vel" to="cmd_vel_mux/input/teleop"/>
+  </node>
+  <node name="safety_node" pkg="line_follower" type="joy_dead_bot_switch.py">
+    <remap from="cmd_vel" to="cmd_vel_target"/>
+  </node> -->
+  <node name="joy" pkg="joy" type="joy_node"/>
+
+
+  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+
+</launch>
