@@ -1,0 +1,10 @@
+<launch>
+    <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+    <include file="$(find turtlebot_bringup/launch/3dsensor.launch)"/>
+    <include file="$(find turtlebot_navigation)/launch/amcl_demo.launch">
+        <arg name="map_file" value="$(find egg_navigation)/map/map.yaml">
+    </include>
+
+    <!--<node pkg="egg_navigation" type="patrol.py">-->
+    <!--</node>-->
+</launch>
