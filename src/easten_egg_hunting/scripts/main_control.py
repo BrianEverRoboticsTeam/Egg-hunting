@@ -8,6 +8,8 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 
 from std_msgs.msg import String
+from rospy.numpy_msg import numpy_msg
+from rospy_tutorials.msg import Floats
 
 
 twist = Twist()
@@ -29,7 +31,8 @@ mode = "nav"
 def pose_callback(pose_msg):
     global mode
 
-    print pose_msg.data
+    if mode=="docking":
+        print pose_msg.data
 
 def detection_callback(detection_msg):
     global mode
@@ -47,9 +50,13 @@ def detection_callback(detection_msg):
         precise_cmd_pub.publish(goal_command)
 
 def precise_cmd_callback(precise_cmd_feedback_msg):
-    print precise_cmd_feedback_msg.data
+    global mode
+    # print precise_cmd_feedback_msg.data
+    if mode=="found" and precise_cmd_feedback_msg.data=="stop":
+        mode = "docking"
 
 """ ros node configs """
+pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), pose_callback)
 detection_sub = rospy.Subscriber('detector', String, detection_callback)
 
 cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
