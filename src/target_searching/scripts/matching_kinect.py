@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import rospy
+import rospy, os
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32
 import cv_bridge
@@ -24,8 +24,9 @@ class LogoDetector:
         self.depth = None
 
         # Prepare templates at multiple scales:
-        self.template_original = cv2.imread('logo.png',0)
-        self.template_original = imresize(self.template_original, 0.4)
+        root = os.path.dirname(os.path.abspath(__file__))
+        self.template_original = cv2.imread(root+'/logo.png',0)
+        self.template_original = imresize(self.template_original, 0.8)
         self.template_original = cv2.GaussianBlur(self.template_original, (9,9), 0)
         # self.template_original = cv2.blur(self.template_original, (9,9))
         # cv2.imshow('original template', self.template_original)
@@ -90,7 +91,7 @@ class LogoDetector:
 
 
     def spin(self):
-        while True:
+        while not rospy.is_shutdown():
             if self.image == None:
                 continue
             if self.depth == None:

@@ -5,8 +5,12 @@
   <node name="safety_node" pkg="line_follower" type="joy_dead_bot_switch.py">
     <remap from="cmd_vel" to="cmd_vel_target"/>
   </node> -->
-  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
+
   <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+  <!--This is not needed if the main program is running-->
+  <include file="$(find target_searching)/launch/start.launch"/>
+  <!-- <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/> -->
   <node name="joy" pkg="joy" type="joy_node"/>
 
   <!-- front view ar tag node -->
@@ -55,6 +59,9 @@
 
   <node name="ar_searching_node" pkg="target_searching" type="ar_search.py"/>
 
+  <!-- Control nodes -->
+  <node name="precise_control_node" pkg="easten_egg_hunting" type="precise_control.py"/>
+
   <!-- Navigation and Localization -->
   <include file="$(find turtlebot_navigation)/launch/amcl_demo.launch">
       <arg name="map_file" value="$(find egg_navigation)/map/map.yaml"/>
@@ -64,12 +71,6 @@
       <!--<remap from="cmd_vel_mux/input/teleop" to="egg_navigation/raw_cmd_vel"/>-->
   </include>
   <!--<include file="$(find turtlebot_rviz_launchers)/launch/view_navigation.launch"/>-->
-
-  <!--This is not needed if the main program is running-->
-  <include file="$(find target_searching)/launch/start.launch"/>
-
-  <!-- Control nodes -->
-  <node name="precise_control_node" pkg="easten_egg_hunting" type="precise_control.py"/>
 
 
 </launch>
