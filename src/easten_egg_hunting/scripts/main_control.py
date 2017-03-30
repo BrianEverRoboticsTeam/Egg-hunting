@@ -185,10 +185,10 @@ def logo_pose_callback(pose_msg):
         send_sound("Found")
 
 def detection_callback(detection_msg):
-    global mode
+    global mode, new_born
 
     # print(detection_msg.data)
-    if detection_msg.data=="True" and mode=="nav":
+    if detection_msg.data=="True" and mode=="nav" and not new_born:
         detected = True
         nav_pub.publish("Stop") # stop navigation
         mode = "found"
@@ -242,6 +242,12 @@ def precise_cmd_callback(precise_cmd_feedback_msg):
     elif mode=="docking" and precise_cmd_feedback_msg.data=="stop":
         precise_cmd_in_operation = False
 
+def nav_feedback_callback(nav_feedback_msg):
+    global mode, new_born
+
+    if mode=="nav" and nav_feedback_msg.data=="Done":
+        new_born = False
+
 """ ros node configs """
 rospy.init_node('main_control_node')
 
@@ -258,6 +264,8 @@ precise_cmd_pub = rospy.Publisher('control/precise_command',
                                    Twist, queue_size=1)
 precise_cmd_feedback_sub = rospy.Subscriber('control/precise_command/feedback',
                                    String, precise_cmd_callback)
+nav_feedback_sub = rospy.Subscriber('command_to_navi/feedback',
+                                   String, nav_feedback_callback)
 
 rate = rospy.Rate(10)
 while not rospy.is_shutdown():
