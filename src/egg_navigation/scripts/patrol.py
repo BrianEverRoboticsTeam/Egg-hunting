@@ -16,27 +16,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from geometry_msgs.msg import Twist
 from ramp import Movement
 
-
-# Counterclockwise safe:
-# waypoints = [
-    # [(6.29, -1.80, 0.0), (0.0, 0.0, 0.63, 0.78)],
-    # [(6.31, 1.23, 0.0), (0.0, 0.0, 0.99, 0.09)],
-    # [(0.63, 1.43, 0.0), (0.0, 0.0, -0.78, 0.62)],
-    # [(0.49, -1.39, 0.0), (0.0, 0.0, -0.17, 0.98)]
-# ]
 waypoints = [
-    # [(-2.43, 2.99, 0.0), (0.0, 0.0, -0.716, 0.70)],
-    # [(-2.72, -1.91, 0.0), (0.0, 0.0, 0.14, 0.99)],
-    # [(-0.01, -0.19, 0.0), (0.0, 0.0, 0.01, 0.99)],
-    # [(5.07, -1.71, 0.0), (0.0, 0.0, -0.11, 0.99)],
-    # [(8.10, -2.33, 0.0), (0.0, 0.0, 0.70, 0.71)],
-    # [(8.42, 2.35, 0.0), (0.0, 0.0, 0.99, 0.02)]
-
-    # [(-2.38, 2.94, 0.0), (0.0, 0.0, -0.72, 0.69)],
-    # [(-2.64, -1.45, 0.0), (0.0, 0.0, -0.01, 0.99)],
-    # [(7.99, -2.18, 0.0), (0.0, 0.0, 0.69, 0.72)],
-    # [(8.36, 2.29, 0.0), (0.0, 0.0, 1.00, 0.02)]
-
     [(-2.15, 2.58, 0.0), (0.0, 0.0, -0.71, 0.70)],
     [(-2.71, -1.21, 0.0), (0.0, 0.0, -0.00, 0.99)],
     [(7.99, -2.18, 0.0), (0.0, 0.0, 0.69, 0.72)],
@@ -45,9 +25,9 @@ waypoints = [
 
 
 client = None
-trig = False
 force_stop = False
 current_goal = None
+pause = False
 
 
 def goal_pose(pose):
@@ -77,11 +57,22 @@ def joy_callback(msg):
 
 
 def detector_callback(msg):
-    global client
+    global client, to_main, force_stop
+    # time.sleep(2)
+    # client.cancel_goal()
+    # force_stop = True
+
     if msg.data == 'True':
-        client.cancel_all_goals()
-        raw_input('wait here')
+        client.cancel_goal()
+        to_main.publish('Cacelled')
+        while pause:
+            time.sleep(0.1)
         client.send_goal(current_goal)
+
+def main_cmd_callback(msg):
+    global pause
+    if msg.data == 'Start':
+        pause = False
 
 
 def pose_callback(msg):
@@ -96,25 +87,16 @@ def main():
     global client
     
     rospy.init_node('patrol')
-    # joy_sub = rospy.Subscriber('joy', Joy, joy_callback)
-
 
     detector_sub = rospy.Subscriber('detector', String, detector_callback)
     pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, pose_callback)
-    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)  # <3>
-    # rospy.wait_for_service('global_localization')
-    # global_localization = rospy.ServiceProxy('global_localization', Empty)
 
+    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)  # <3>
     client.wait_for_server()
 
-    # print 'Press enter to start amcl localization'
-    # raw_input()
-    # print 'press start key to start amcl localization, after that you should move robot until it finds its location'
-    # while not trig:
-        # pass
-    # global_localization() # reset pose to start amcl
-    # global_localization(Empty()) # reset pose to start amcl
-    # trig = False
+    rospy.wait_for_service('global_localization')
+    global_localization = rospy.ServiceProxy('global_localization', Empty)
+    global_localization() # reset pose to start amcl
 
     # Wander:
     # cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
@@ -123,23 +105,6 @@ def main():
     # linear_range = np.linspace(2, 7, 10)
     # angular_range = np.linspace()
 
-
-
-    # print 'press enter to start'
-    # print 'press start key to go to the initial point'
-    # raw_input()
-    # while not trig:
-        # pass
-    # trig = False
-
-    # Go to the start point:
-    # client.send_goal(goal_pose(waypoints[0]))
-    # client.wait_for_result()
-
-    # print 'press start key to start navigation'
-    # # raw_input()
-    # while not trig:
-        # pass
     
     while not rospy.is_shutdown():
         for pose in waypoints:
@@ -148,8 +113,10 @@ def main():
             current_goal = goal
             client.send_goal(goal)
             client.wait_for_result()
+
             if force_stop:
                 return
+
 
 
 if __name__ == '__main__':
