@@ -5,7 +5,7 @@
 
         <!--This is the cmd_vel to the main program-->
         <!--<remap from="navigation_velocity_smoother/raw_cmd_vel" to="egg_navigation/raw_cmd_vel"/>-->
-        <remap from="cmd_vel_mux/input/teleop" to="egg_navigation/raw_cmd_vel"/>
+        <!--<remap from="cmd_vel_mux/input/teleop" to="egg_navigation/raw_cmd_vel"/>-->
     </include>
     <!--<include file="$(find turtlebot_rviz_launchers)/launch/view_navigation.launch"/>-->
 
