@@ -71,6 +71,19 @@ def odom_callback(msg):
 
         print("Distance to target:", goal_distance)
 
+    if(mode == "backwarding"):
+        goal_distance = goal_distance - abs(distance_i)
+        if (goal_distance > 0.2):
+            twist.linear.x = -0.8#goal_distance + 0.5
+        elif (goal_distance > 0):
+            twist.linear.x = -(goal_distance + 0.3)
+        else:
+            twist.linear.x = 0
+            last_odom_time = None
+            deactivate()
+
+        print("Distance to target:", goal_distance)
+
     if(mode == "turning" or goal_angle > 0):
         goal_angle = goal_angle - abs(d_angle_i)
 
@@ -114,7 +127,10 @@ def command_callback(msg):
     global goal_angle_dir, mode
 
     if (msg.linear.x!=0):
-        mode = "forwarding"
+        if msg.linear.x > 0:
+            mode = "forwarding"
+        elif msg.linear.x < 0:
+            mode = "backwarding"
         goal_distance = abs(msg.linear.x)
         """ test only """
         if (msg.angular.z!=0):

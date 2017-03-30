@@ -7,7 +7,7 @@
   </node> -->
   <node name="joy" pkg="joy" type="joy_node"/>
 
-  <arg name="marker_size" default="11" />
+  <arg name="marker_size" default="16" />
   <arg name="max_new_marker_error" default="0.1" />
   <arg name="max_track_error" default="0.4" />
 

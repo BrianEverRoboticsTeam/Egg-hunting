@@ -11,9 +11,11 @@ def joy_callback(msg):
     angle = None
 
     if msg.buttons[3]==1:
-        distance = 1.7
+        distance = -0.1
         angle = 0
         # mode = "forward"
+        """ testing only """
+
     elif msg.buttons[2]==1:
         distance = 0
         angle = (math.pi / 2)
@@ -43,6 +45,8 @@ if __name__ == '__main__':
     joy_sub = rospy.Subscriber('joy', Joy, joy_callback)
     percise_cmd_pub = rospy.Publisher('control/precise_command',
                                        Twist, queue_size=1)
+    precise_cmd_feedback_sub = rospy.Subscriber('control/precise_command/feedback',
+                                       String, precise_cmd_callback)
 
     rate = rospy.Rate(100)
     while not rospy.is_shutdown():
