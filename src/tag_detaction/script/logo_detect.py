@@ -110,6 +110,7 @@ def image_callback(msg):
         if count > 20:
             img2 = draw(img2, imgpts)
 
+            tvecs = tvecs / (np.ones((3,1)) * WORLD_RATIO)
             pose = np.array([tvecs[0],tvecs[1],tvecs[2],rvecs[0],rvecs[1],rvecs[2]], dtype=np.float32)
             print("tvecs:")
             print(tvecs)
@@ -151,7 +152,7 @@ MIN_MATCH_COUNT = 10
 
 WORLD_RATIO = 135.5/0.0555
 
-img1 = cv2.imread('logo.jpg')   # queryImage
+img1 = cv2.imread('logo.png')   # queryImage
 orb = cv2.ORB_create()#nfeatures=50, nlevels=1)
 # orb = cv2.ORB()
 kp1, des1 = orb.detectAndCompute(img1,None)

@@ -90,7 +90,7 @@ detect = "False"
 #image_sub = rospy.Subscriber('camera/rgb/image_raw', Image, image_callback)
 rospy.init_node('ar_detector')
 
-pose_sub = rospy.Subscriber('ar_pose_marker', AlvarMarkers, pose_callback)
+pose_sub = rospy.Subscriber('ar_pose_marker/side_view', AlvarMarkers, pose_callback)
 
 pub = rospy.Publisher('detector', String, queue_size=10)
 

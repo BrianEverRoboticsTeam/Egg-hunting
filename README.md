@@ -34,3 +34,28 @@ source devel/setup.bash
 ```
 
 Now you are good to go.
+
+# Testing Main Control
+
+terminal 1
+```
+roslaunch easten_egg_hunting vision_docking.launch 
+```
+
+terminal 2
+```
+roslaunch tag_detaction usb_cam2.launch 
+```
+
+terminal 3
+```
+rosrun target_searching ar_search.py 
+```
+
+terminal 4
+```
+/Egg-hunting/src/tag_detaction/script$ ./ar_detect.py 
+```
+
+
+
