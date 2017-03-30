@@ -8,7 +8,9 @@ from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 
 # Load previously saved data
-npzfile = np.load('test.npz')
+import os
+root = os.path.dirname(os.path.abspath(__file__))
+npzfile = np.load(root + '/test.npz')
 mtx = npzfile['arr_0']
 dist = npzfile['arr_1']
 
@@ -152,7 +154,7 @@ MIN_MATCH_COUNT = 10
 
 WORLD_RATIO = 135.5/0.0555
 
-img1 = cv2.imread('logo.png')   # queryImage
+img1 = cv2.imread(root+'/logo.png')   # queryImage
 orb = cv2.ORB_create()#nfeatures=50, nlevels=1)
 # orb = cv2.ORB()
 kp1, des1 = orb.detectAndCompute(img1,None)

@@ -52,7 +52,7 @@ class LogoDetector:
             region = depth[y0:y1, x0:x1]
             dist = np.nanmean(region.astype(np.float32))
 
-            if np.isnan(dist):
+            if np.isnan(dist) or dist < 1.0:
                 self.x_pub.publish(-1.0)
                 continue
 
