@@ -87,10 +87,12 @@ def goal_pose(pose):
 
 
 def command_callback(msg):
-    global pause
+    global pause, client
     if msg.data == 'Start':
         pause = False
     elif msg.data == 'Stop':
+        if client != None:
+            client.cancel_goal()
         pause = True
 
 
