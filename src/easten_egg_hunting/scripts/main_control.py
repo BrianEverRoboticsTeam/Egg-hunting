@@ -8,6 +8,7 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 
 from std_msgs.msg import String
+from std_msgs.msg import Float32
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 from kobuki_msgs.msg import Sound
@@ -25,7 +26,7 @@ is_far_away = True
 new_born = True
 fast_fail_num = 0
 
-is_on_operation = False
+docking_is_on_operation = False
 precise_cmd_in_operation = False
 
 mode_set = ["nav","found","docking","undocking"]
@@ -70,13 +71,14 @@ def do_undocking_sequence():
         pass
 
     mode="nav"
+    nav_pub.publish("Start")
 
 
 def ar_pose_callback(pose_msg):
-    global mode, is_on_operation, precise_cmd_in_operation
+    global mode, docking_is_on_operation, precise_cmd_in_operation
 
-    if mode=="docking" and not is_on_operation:
-        is_on_operation = True
+    if mode=="docking" and not docking_is_on_operation:
+        docking_is_on_operation = True
 
         # print pose_msg.data
         tvecs = np.array([[pose_msg.data[0]],[pose_msg.data[1]],[pose_msg.data[2]]])
@@ -125,12 +127,14 @@ def ar_pose_callback(pose_msg):
             pass
 
         send_sound("Found")
+        docking_is_on_operation = False
+        mode = "undocking"
 
 def logo_pose_callback(pose_msg):
-    global mode, is_on_operation, precise_cmd_in_operation
+    global mode, docking_is_on_operation, precise_cmd_in_operation
 
-    if mode=="docking" and not is_on_operation:
-        is_on_operation = True
+    if mode=="docking" and not docking_is_on_operation:
+        docking_is_on_operation = True
 
         # print pose_msg.data
         tvecs = np.array([[pose_msg.data[0]],[pose_msg.data[1]],[pose_msg.data[2]]])
@@ -186,6 +190,7 @@ def detection_callback(detection_msg):
     # print(detection_msg.data)
     if detection_msg.data=="True" and mode=="nav":
         detected = True
+        nav_pub.publish("Stop") # stop navigation
         mode = "found"
 
         goal_command = Twist()
@@ -207,6 +212,16 @@ def nav_callback(nav_msg):
     if mode=="nav":
         pass
 
+def logo_approching_guide_callback(guide_msg):
+    global mode
+
+    print(type(guide_msg.data))
+    if mode=="docking" and not docking_is_on_operation:
+        command = Twist()
+        command.linear.x = 0.1
+        command.angular.z = math.pi * (320 - guide_msg.data) / 320.0
+        cmd_vel_pub.publish(command)
+
 def precise_cmd_callback(precise_cmd_feedback_msg):
     global mode, precise_cmd_in_operation
     # print precise_cmd_feedback_msg.data
@@ -219,10 +234,12 @@ def precise_cmd_callback(precise_cmd_feedback_msg):
 rospy.init_node('main_control_node')
 
 ar_pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), ar_pose_callback)
-# logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
+logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
+logo_approching_guide_sub = rospy.Subscriber('detector_x', Floats32, logo_approching_guide_callback)
 detection_sub = rospy.Subscriber('detector', String, detection_callback)
-nav_sub = rospy.Subscriber('egg_navigation/raw_cmd_vel', Twist, nav_callback)
+# nav_sub = rospy.Subscriber('egg_navigation/raw_cmd_vel', Twist, nav_callback)
 
+nav_pub = rospy.Subscriber('command_to_navi', String, queue_size = 1)
 sound_pub = rospy.Publisher('/mobile_base/commands/sound', Sound, queue_size = 1)
 cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
 precise_cmd_pub = rospy.Publisher('control/precise_command',
