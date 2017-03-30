@@ -199,7 +199,7 @@ def detection_callback(detection_msg):
         while (precise_cmd_in_operation):
             pass
 
-        mode = "found"
+        mode = "docking"
 
 def nav_callback(nav_msg):
     global mode
@@ -218,7 +218,7 @@ def precise_cmd_callback(precise_cmd_feedback_msg):
 """ ros node configs """
 rospy.init_node('main_control_node')
 
-# ar_pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), ar_pose_callback)
+ar_pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), ar_pose_callback)
 # logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
 detection_sub = rospy.Subscriber('detector', String, detection_callback)
 nav_sub = rospy.Subscriber('egg_navigation/raw_cmd_vel', Twist, nav_callback)
