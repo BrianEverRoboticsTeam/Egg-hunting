@@ -8,6 +8,8 @@ import math
 precise_cmd_in_operation = False
 
 def joy_callback(msg):
+    global precise_cmd_in_operation
+    
     goal_command = Twist()
     distance = None
     angle = None
@@ -20,8 +22,9 @@ def joy_callback(msg):
         goal_command.linear.x = distance
         goal_command.angular.z = angle
         percise_cmd_pub.publish(goal_command)
+
         precise_cmd_in_operation = True
-        while not precise_cmd_in_operation:
+        while precise_cmd_in_operation:
             pass
 
         distance = 0
@@ -59,6 +62,7 @@ def joy_callback(msg):
 
 def precise_cmd_callback(precise_cmd_feedback_msg):
     global precise_cmd_in_operation
+
     precise_cmd_in_operation = False
 
 if __name__ == '__main__':
