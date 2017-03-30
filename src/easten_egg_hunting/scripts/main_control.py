@@ -118,7 +118,7 @@ def ar_pose_callback(pose_msg):
 
         percise_command.linear.x = math.sqrt(delta_z*delta_z + delta_x*delta_x) #* 0.025
         #percise_command.angular.z = 0
-        percise_command.linear.x -= 1.0
+        percise_command.linear.x -= 0.5
         precise_cmd_in_operation = True
         percise_cmd_pub.publish(percise_command)
         print("forward1:", percise_command.linear.x)
@@ -127,8 +127,8 @@ def ar_pose_callback(pose_msg):
             pass
 
         send_sound("Found")
-        docking_is_on_operation = False
-        mode = "undocking"
+        # docking_is_on_operation = False
+        # mode = "undocking"
 
 def logo_pose_callback(pose_msg):
     global mode, docking_is_on_operation, precise_cmd_in_operation
@@ -213,14 +213,26 @@ def nav_callback(nav_msg):
         pass
 
 def logo_approching_guide_callback(guide_msg):
-    global mode
+    global mode, docking_is_on_operation, precise_cmd_in_operation
 
     #print(type(guide_msg.data))
     if mode=="docking" and not docking_is_on_operation:
         command = Twist()
-        command.linear.x = 0.1
-        command.angular.z = math.pi * (320 - guide_msg.data) / 320.0
-        cmd_vel_pub.publish(command)
+        # command.linear.x = 0.1
+        command.angular.z = math.radians(30) * (320 - guide_msg.data) / 320.0
+        # cmd_vel_pub.publish(command)
+        precise_cmd_in_operation = True
+        precise_cmd_pub.publish(command)
+        print("UA logo approching:", command.angular.z)
+        print(320 - guide_msg.data)
+
+        while (precise_cmd_in_operation):
+            pass
+
+        while not docking_is_on_operation:
+            command.linear.x = 0.2
+            command.angular.z = 0
+            cmd_vel_pub.publish(command)
 
 def precise_cmd_callback(precise_cmd_feedback_msg):
     global mode, precise_cmd_in_operation
