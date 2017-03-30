@@ -42,7 +42,7 @@ def send_sound(value):
     sound_pub.publish(sound)
 
 def do_undocking_sequence():
-    global precise_cmd_in_operation, mode
+    global precise_cmd_in_operation, mode, docking_is_on_operation
     goal_command = Twist()
     distance = None
     angle = None
@@ -60,7 +60,7 @@ def do_undocking_sequence():
 
     #turn_left
     distance = 0
-    angle = (math.pi / 2)
+    angle = 3*(math.pi / 4)
 
     goal_command.linear.x = distance
     goal_command.angular.z = angle
@@ -72,6 +72,7 @@ def do_undocking_sequence():
 
     mode="nav"
     nav_pub.publish("Start")
+    docking_is_on_operation = False
 
 
 def ar_pose_callback(pose_msg):
@@ -183,6 +184,8 @@ def logo_pose_callback(pose_msg):
             pass
 
         send_sound("Found")
+        mode = "undocking"
+        # docking_is_on_operation = False
 
 def detection_callback(detection_msg):
     global mode, new_born
@@ -264,7 +267,7 @@ precise_cmd_pub = rospy.Publisher('control/precise_command',
                                    Twist, queue_size=1)
 precise_cmd_feedback_sub = rospy.Subscriber('control/precise_command/feedback',
                                    String, precise_cmd_callback)
-nav_feedback_sub = rospy.Subscriber('command_to_navi/feedback',
+nav_feedback_sub = rospy.Subscriber('command_to_navi_feedback',
                                    String, nav_feedback_callback)
 
 rate = rospy.Rate(10)
@@ -277,7 +280,7 @@ while not rospy.is_shutdown():
 
         """ real navigation """
         if new_born:
-            nav_pub.publish("Start")
+            nav_pub.publish("Relocate")
 
     elif mode=="undocking":
         do_undocking_sequence()
