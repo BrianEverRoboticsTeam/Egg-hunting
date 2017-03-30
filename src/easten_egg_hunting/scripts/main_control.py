@@ -23,9 +23,9 @@ learning_rate = 0.9
 in_front = False
 is_stop = False
 is_far_away = True
-new_born = True
 fast_fail_num = 0
 
+new_born = True
 docking_is_on_operation = False
 precise_cmd_in_operation = False
 
@@ -263,9 +263,14 @@ rate = rospy.Rate(10)
 while not rospy.is_shutdown():
     if mode=="nav":
         """ simulate navigation """
-        command = Twist()
-        command.linear.x = 0.5
-        cmd_vel_pub.publish(command)
+        # command = Twist()
+        # command.linear.x = 0.5
+        # cmd_vel_pub.publish(command)
+
+        """ real navigation """
+        if new_born:
+            nav_pub.publish("Start")
+
     elif mode=="undocking":
         do_undocking_sequence()
 
