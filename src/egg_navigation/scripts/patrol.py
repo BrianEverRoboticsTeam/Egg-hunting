@@ -14,7 +14,7 @@ from std_srvs.srv import Empty
 from geometry_msgs.msg import PoseWithCovarianceStamped
 
 from geometry_msgs.msg import Twist
-from ramp import Movement
+from ramp import Movement, getTimeSafe
 
 # 90 degree turns:
 # waypoints = [
@@ -116,20 +116,23 @@ def main():
     global_localization = rospy.ServiceProxy('global_localization', Empty)
     global_localization() # reset pose to start amcl
 
-    while pause:
-        time.sleep(0.1)
+    # while pause:
+        # time.sleep(0.1)
 
     # Do some simple movements to find the location
     cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
     # move = Movement()
-    # tw = Twist()
-    tw.angular.z = 0.2
+    tw = Twist()
     # move.start()
     # move.updateTarget(tw)
-    cmd_vel_pub.publish(tw)
-    time.sleep(8)
-    tw.angular.z = 0
-    cmd_vel_pub.publish(tw)
+    print 'turning...'
+    timelimit = getTimeSafe() + rospy.Duration(8)
+    while getTimeSafe() < timelimit:
+        tw.angular.z = 0.8
+        cmd_vel_pub.publish(tw)
+
+    print 'stopped.'
+    print 'navigation..'
 
     
     while not rospy.is_shutdown():
