@@ -27,7 +27,7 @@ waypoints = [
 client = None
 force_stop = False
 current_goal = None
-pause = False
+pause = True
 
 
 def goal_pose(pose):
@@ -43,36 +43,38 @@ def goal_pose(pose):
     return goal_pose
 
 
-def joy_callback(msg):
-    global trig
-    global client
-    if msg.buttons[2]==1:
-        trig = not trig
-        print 'trigger =', trig
-    elif msg.buttons[1]==1:
-        print 'Exit...'
-        client.cancel_all_goals()
-        force_stop = True
-        # os._exit(0)
+# def joy_callback(msg):
+    # global trig
+    # global client
+    # if msg.buttons[2]==1:
+        # trig = not trig
+        # print 'trigger =', trig
+    # elif msg.buttons[1]==1:
+        # print 'Exit...'
+        # client.cancel_all_goals()
+        # force_stop = True
+        # # os._exit(0)
 
 
-def detector_callback(msg):
-    global client, to_main, force_stop
-    # time.sleep(2)
-    # client.cancel_goal()
-    # force_stop = True
+# def detector_callback(msg):
+    # global client, command_pub, force_stop
+    # # time.sleep(2)
+    # # client.cancel_goal()
+    # # force_stop = True
 
-    if msg.data == 'True':
-        client.cancel_goal()
-        to_main.publish('Cacelled')
-        while pause:
-            time.sleep(0.1)
-        client.send_goal(current_goal)
+    # if msg.data == 'True':
+        # client.cancel_goal()
+        # while pause:
+            # time.sleep(0.1)
+        # client.send_goal(current_goal)
 
-def main_cmd_callback(msg):
+
+def command_callback(msg):
     global pause
     if msg.data == 'Start':
         pause = False
+    elif msg.data == 'Stop':
+        pause = True
 
 
 def pose_callback(msg):
@@ -81,29 +83,36 @@ def pose_callback(msg):
 
 
 def main():
-    global trig
-    global force_stop
-    global current_goal
-    global client
+    global trig, current_goal, client
     
     rospy.init_node('patrol')
 
-    detector_sub = rospy.Subscriber('detector', String, detector_callback)
+    # detector_sub = rospy.Subscriber('detector', String, detector_callback)
     pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, pose_callback)
+    command_sub = rospy.Subscriber('command_to_navi', String, command_callback)
 
-    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)  # <3>
+    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     client.wait_for_server()
 
+    # Reset AMCL Localizer:
     rospy.wait_for_service('global_localization')
     global_localization = rospy.ServiceProxy('global_localization', Empty)
     global_localization() # reset pose to start amcl
 
-    # Wander:
-    # cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
+    while pause:
+        time.sleep(0.1)
+
+    # Do some simple movements to find the location
+    cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
     # move = Movement()
     # tw = Twist()
-    # linear_range = np.linspace(2, 7, 10)
-    # angular_range = np.linspace()
+    tw.angular.z = 0.2
+    # move.start()
+    # move.updateTarget(tw)
+    cmd_vel_pub.publish(tw)
+    time.sleep(8)
+    tw.angular.z = 0
+    cmd_vel_pub.publish(tw)
 
     
     while not rospy.is_shutdown():
@@ -114,9 +123,10 @@ def main():
             client.send_goal(goal)
             client.wait_for_result()
 
-            if force_stop:
-                return
-
+            if pause:
+                while pause:
+                    time.sleep(0.1)
+                client.send_goal(goal)
 
 
 if __name__ == '__main__':
