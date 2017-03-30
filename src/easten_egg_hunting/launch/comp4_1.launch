@@ -20,7 +20,7 @@
 
   <node name="ar_track_alvar2" pkg="ar_track_alvar" type="individualMarkers" respawn="false" output="screen"
     args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic2) $(arg cam_info_topic2) $(arg output_frame2)" />
-  <mode name="ar_detaction_node" pkg="tag_detection" type="ar_detact.py"/>
+  <node name="ar_detaction_node" pkg="tag_detection" type="ar_detect.py"/>
 
   <!-- side view ar tag node -->
   <!-- <arg name="marker_size" default="6" />
@@ -53,7 +53,7 @@
 		<param name="camera_info_url" value="package://visp_auto_tracker/models/calibration.ini" type="string" />
 	</node>
 
-  <mode name="ar_searching_node" pkg="target_searching" type="ar_search.py"/>
+  <node name="ar_searching_node" pkg="target_searching" type="ar_search.py"/>
 
   <!-- Control nodes -->
   <node name="precise_control_node" pkg="easten_egg_hunting" type="precise_control.py"/>

@@ -1,0 +1,9 @@
+<launch>
+  <node name="ar_detaction_node" pkg="tag_detection" type="ar_detect.py"/>
+  <node name="ar_searching_node" pkg="target_searching" type="ar_search.py"/>
+
+  <!-- Control nodes -->
+  <node name="precise_control_node" pkg="easten_egg_hunting" type="precise_control.py"/>
+
+
+</launch>
