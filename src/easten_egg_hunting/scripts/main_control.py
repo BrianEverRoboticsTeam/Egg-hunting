@@ -102,6 +102,12 @@ def detection_callback(detection_msg):
         goal_command.angular.z = angle
         precise_cmd_pub.publish(goal_command)
 
+def nav_callback(nav_msg):
+    global mode
+    print(nav_msg.data)
+    if mode=="nav":
+        pass
+
 def precise_cmd_callback(precise_cmd_feedback_msg):
     global mode, precise_cmd_in_operation
     # print precise_cmd_feedback_msg.data
@@ -116,6 +122,7 @@ rospy.init_node('main_control_node')
 pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), pose_callback)
 pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), pose_callback)
 detection_sub = rospy.Subscriber('detector', String, detection_callback)
+nav_sub = rospy.Subscriber('egg_navigation/raw_cmd_vel', Twist, nav_callback)
 
 sound_pub = rospy.Publisher('/mobile_base/commands/sound', Sound, queue_size = 1)
 cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
