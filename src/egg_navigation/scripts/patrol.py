@@ -107,6 +107,7 @@ def main():
     # detector_sub = rospy.Subscriber('detector', String, detector_callback)
     pose_sub = rospy.Subscriber('amcl_pose', PoseWithCovarianceStamped, pose_callback)
     command_sub = rospy.Subscriber('command_to_navi', String, command_callback)
+    command_pub = rospy.Publisher('command_to_navi_feedback', String, queue_size=1)
 
     client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     client.wait_for_server()
@@ -116,8 +117,8 @@ def main():
     global_localization = rospy.ServiceProxy('global_localization', Empty)
     global_localization() # reset pose to start amcl
 
-    # while pause:
-        # time.sleep(0.1)
+    while pause:
+        time.sleep(0.1)
 
     # Do some simple movements to find the location
     cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
@@ -133,6 +134,8 @@ def main():
 
     print 'stopped.'
     print 'navigation..'
+
+    command_pub.publish('Done')
 
     
     while not rospy.is_shutdown():
