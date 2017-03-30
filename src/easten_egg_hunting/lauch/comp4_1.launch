@@ -5,6 +5,8 @@
   <node name="safety_node" pkg="line_follower" type="joy_dead_bot_switch.py">
     <remap from="cmd_vel" to="cmd_vel_target"/>
   </node> -->
+  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
   <node name="joy" pkg="joy" type="joy_node"/>
 
   <!-- front view ar tag node -->
@@ -51,11 +53,10 @@
 		<param name="camera_info_url" value="package://visp_auto_tracker/models/calibration.ini" type="string" />
 	</node>
 
-  <mode name="ar_detaction_node" pkg="target_searching" type="ar_search.py"/>
+  <mode name="ar_searching_node" pkg="target_searching" type="ar_search.py"/>
 
-
-  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
-  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+  <!-- Control nodes -->
+  <node name="precise_control_node" pkg="easten_egg_hunting" type="precise_control.py"/>
 
 
 </launch>

@@ -41,7 +41,7 @@ def send_sound(value):
     sound_pub.publish(sound)
 
 def do_undocking_sequence():
-    global precise_cmd_in_operation
+    global precise_cmd_in_operation, mode
     goal_command = Twist()
     distance = None
     angle = None
@@ -65,6 +65,11 @@ def do_undocking_sequence():
     goal_command.angular.z = angle
     precise_cmd_in_operation = True
     precise_cmd_pub.publish(goal_command)
+
+    while precise_cmd_in_operation:
+        pass
+
+    mode="nav"
 
 
 def ar_pose_callback(pose_msg):
