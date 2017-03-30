@@ -35,11 +35,7 @@ class LogoDetector:
         self.logo = cv2.GaussianBlur(self.logo, (9,9), 0)
         self.ar_tag = cv2.GaussianBlur(self.ar_tag, (9,9), 0)
 
-
-        # cv2.imshow('logo', self.logo)
-        # cv2.imshow('ar_tag', self.ar_tag)
-
-        with open(root+'/param/khw.bin', 'rb') as f:
+        with open(root+'/param/webcam_logo.bin', 'rb') as f:
             self.kh, self.kw = pickle.load(f)
 
     def ultrasonic_callback(self, msg):
@@ -67,7 +63,8 @@ class LogoDetector:
             h = int(round(self.kh / dist))
 
             if h >= gray.shape[0] or w >= gray.shape[1] or h < 20 or w < 20:
-                cv2.imshow(meth, frame)
+                # cv2.imshow(meth, frame)
+                self.pub.publish('False')
                 continue
 
             # test rectangle:
@@ -94,7 +91,7 @@ class LogoDetector:
             # loc_ar = np.where(res_ar > 0.45)
             # for pt in zip(*loc_ar[::-1]):
                 # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,128,255), 2)
-            cv2.imshow(meth, frame)
+            # cv2.imshow(meth, frame)
 
             # print loc_logo
             # if res_logo.max() > 0.45 or res_ar.max() > 0.45:
@@ -115,8 +112,8 @@ class LogoDetector:
             frame = self.image.copy()
             self.detection(frame)
 
-            if cv2.waitKey(1) & 0xff == ord('q'):
-                break
+            # if cv2.waitKey(1) & 0xff == ord('q'):
+                # break
             self.rate.sleep()
 
 
