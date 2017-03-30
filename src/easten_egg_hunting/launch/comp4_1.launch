@@ -68,7 +68,7 @@
 
   <node name="ar_searching_node" pkg="target_searching" type="ar_search.py"/>
 
-  <node name="ua_logo_detection_node" pkg="tag_detection" type="logo_tect.py" />
+  <node name="ua_logo_detection_node" pkg="tag_detection" type="logo_detect.py" />
 
   <!-- Control nodes -->
   <node name="precise_control_node" pkg="easten_egg_hunting" type="precise_control.py"/>

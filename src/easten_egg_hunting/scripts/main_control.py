@@ -264,7 +264,7 @@ precise_cmd_pub = rospy.Publisher('control/precise_command',
                                    Twist, queue_size=1)
 precise_cmd_feedback_sub = rospy.Subscriber('control/precise_command/feedback',
                                    String, precise_cmd_callback)
-nav_feedback_sub = rospy.Subscriber('command_to_navi/feedback',
+nav_feedback_sub = rospy.Subscriber('command_to_navi_feedback',
                                    String, nav_feedback_callback)
 
 rate = rospy.Rate(10)

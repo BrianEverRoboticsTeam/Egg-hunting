@@ -45,6 +45,9 @@ client = None
 force_stop = False
 current_goal = None
 pause = True
+global_localization = None
+cmd_vel_pub = None
+restart = False
 
 
 def goal_pose(pose):
@@ -87,13 +90,24 @@ def goal_pose(pose):
 
 
 def command_callback(msg):
-    global pause, client
+    global pause, client, cmd_vel_pub
     if msg.data == 'Start':
         pause = False
     elif msg.data == 'Stop':
         if client != None:
             client.cancel_goal()
         pause = True
+    elif msg.data == 'Relocate':
+        if client != None:
+            client.cancel_goal()
+        global_localization()
+        timelimit = getTimeSafe() + rospy.Duration(8)
+        while getTimeSafe() < timelimit:
+            tw.angular.z = 0.8
+            cmd_vel_pub.publish(tw)
+        command_pub.publish('Done')
+        pause = False
+        restart = True
 
 
 def pose_callback(msg):
@@ -102,7 +116,7 @@ def pose_callback(msg):
 
 
 def main():
-    global trig, current_goal, client
+    global trig, current_goal, client, global_localization
     
     rospy.init_node('patrol')
 
@@ -152,6 +166,10 @@ def main():
                 while pause:
                     time.sleep(0.1)
                 client.send_goal(goal)
+
+            if restart:
+                restart = False
+                break
 
 
 if __name__ == '__main__':
