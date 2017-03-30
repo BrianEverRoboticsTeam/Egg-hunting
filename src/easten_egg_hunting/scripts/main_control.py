@@ -29,7 +29,7 @@ is_on_operation = False
 precise_cmd_in_operation = False
 
 mode_set = ["nav","found","docking","undocking"]
-mode = "docking"
+mode = "nav"
 
 def send_sound(value):
     sound = Sound()
@@ -186,6 +186,7 @@ def detection_callback(detection_msg):
     # print(detection_msg.data)
     if detection_msg.data=="True" and mode=="nav":
         detected = True
+        mode = "found"
 
         goal_command = Twist()
         distance = 0
@@ -217,8 +218,8 @@ def precise_cmd_callback(precise_cmd_feedback_msg):
 """ ros node configs """
 rospy.init_node('main_control_node')
 
-ar_pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), ar_pose_callback)
-logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
+# ar_pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), ar_pose_callback)
+# logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
 detection_sub = rospy.Subscriber('detector', String, detection_callback)
 nav_sub = rospy.Subscriber('egg_navigation/raw_cmd_vel', Twist, nav_callback)
 
