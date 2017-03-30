@@ -87,17 +87,18 @@ class LogoDetector:
             res_ar = cv2.matchTemplate(gray, ar_tag, method)
 
 
-            # loc_logo = np.where(res_logo > 0.45)
-            # for pt in zip(*loc_logo[::-1]):
-                # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
+            loc_logo = np.where(res_logo > 0.45)
+            for pt in zip(*loc_logo[::-1]):
+                cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
 
             # loc_ar = np.where(res_ar > 0.45)
             # for pt in zip(*loc_ar[::-1]):
                 # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,128,255), 2)
-            # cv2.imshow(meth, frame)
+            cv2.imshow(meth, frame)
 
             # print loc_logo
-            if res_logo.max() > 0.45 or res_ar.max() > 0.45:
+            # if res_logo.max() > 0.45 or res_ar.max() > 0.45:
+            if res_logo.max() > 0.45:
                 self.pub.publish('True')
             else:
                 self.pub.publish('False')
@@ -114,8 +115,8 @@ class LogoDetector:
             frame = self.image.copy()
             self.detection(frame)
 
-            # if cv2.waitKey(1) & 0xff == ord('q'):
-                # break
+            if cv2.waitKey(1) & 0xff == ord('q'):
+                break
             self.rate.sleep()
 
 
