@@ -14,5 +14,5 @@
 
     <!--<node name="joy" pkg="joy" type="joy_node"/>-->
     
-    <!--<node name="patrol" pkg="egg_navigation" type="patrol.py"/>-->
+    <node name="patrol" pkg="egg_navigation" type="patrol.py"/>
 </launch>
