@@ -26,22 +26,37 @@ def goal_pose(pose):
 
 class Explore(State):
     def __init__(self):
-        State.__init__(self, outcomes=['success'])
+        State.__init__(self, outcomes=['success', 'lost'])
         self.side_detector = rospy.Subscriber('detector', String,
                 self.side_detector_callback)
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.client.wait_for_server()
         self.i = 0
+        self.found = False
 
     def execute(self, userdata):
         while not rospy.is_shutdown():
             while self.i < len(waypoints):
                 pose = waypoints[self.i]
                 self.client.send_goal(goal_pose(pose))
-                self.client.wait_for_result()
-                self.i += 1
+                if self.client.wait_for_result():
+                    # reached the goal, go to the next goal
+                    self.i += 1
+                elif self.found:
+                    # found a target, go to pre-docking state
+                    # TODO: check if client.cancel_goal will causes
+                    # client.wait_for_result return a False. If not,
+                    # then the robot will stop a sec and skip the current goal
+                    # and go to the next goal.
+                    self.found = False
+                    return 'success'
+                else:
+                    # we lost, go to localization state
+                    return 'lost'
+
             self.i = 0
 
     def side_detector_callback(self, msg):
         if msg.data == 'True':
-            return 'success'
+            self.client.cancel_goal()
+            self.found = True

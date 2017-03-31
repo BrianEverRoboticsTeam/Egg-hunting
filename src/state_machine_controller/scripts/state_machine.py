@@ -16,7 +16,7 @@ if __name__ == '__main__':
                 transitions={'success': 'Explore'})
 
         StateMachine.add('Explore', Explore(),
-                transitions={'success': 'PreDocking'})
+                transitions={'success': 'PreDocking', 'lost': 'Localization'})
 
         StateMachine.add('PreDocking', PreDocking(),
                 transitions={'success', 'Docking'})
