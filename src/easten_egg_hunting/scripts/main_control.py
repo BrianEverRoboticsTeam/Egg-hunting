@@ -42,7 +42,7 @@ def send_sound(value):
     sound_pub.publish(sound)
 
 def do_undocking_sequence():
-    global precise_cmd_in_operation, mode, docking_is_on_operation
+    global precise_cmd_in_operation, mode, docking_is_on_operation, is_guide_done
     goal_command = Twist()
     distance = None
     angle = None
@@ -73,6 +73,7 @@ def do_undocking_sequence():
     mode="nav"
     nav_pub.publish("Start")
     docking_is_on_operation = False
+    is_guide_done = False
 
 
 def ar_pose_callback(pose_msg):
@@ -129,7 +130,7 @@ def ar_pose_callback(pose_msg):
 
         send_sound("Found")
         # docking_is_on_operation = False
-        # mode = "undocking"
+        mode = "undocking"
 
 def logo_pose_callback(pose_msg):
     global mode, docking_is_on_operation, precise_cmd_in_operation
@@ -193,8 +194,8 @@ def detection_callback(detection_msg):
     # print(detection_msg.data)
     if detection_msg.data=="True" and mode=="nav" and not new_born:
         detected = True
-        nav_pub.publish("Stop") # stop navigation
         mode = "found"
+        nav_pub.publish("Stop") # stop navigation
 
         goal_command = Twist()
         distance = 0
@@ -215,27 +216,39 @@ def nav_callback(nav_msg):
     if mode=="nav":
         pass
 
+is_guide_done = False
+
 def logo_approching_guide_callback(guide_msg):
-    global mode, docking_is_on_operation, precise_cmd_in_operation
+    global mode, docking_is_on_operation, precise_cmd_in_operation, is_guide_done
 
     #print(type(guide_msg.data))
-    if mode=="docking" and not docking_is_on_operation:
+    if mode=="docking" and not docking_is_on_operation and guide_msg.data!=-1:
         command = Twist()
         # command.linear.x = 0.1
-        command.angular.z = math.radians(30) * (320 - guide_msg.data) / 320.0
-        # cmd_vel_pub.publish(command)
-        precise_cmd_in_operation = True
-        precise_cmd_pub.publish(command)
-        print("UA logo approching:", command.angular.z)
-        print(320 - guide_msg.data)
 
-        while (precise_cmd_in_operation):
-            pass
+        if not is_guide_done:
+            is_guide_done = True
+            command.angular.z = math.radians(30) * (320 - guide_msg.data) / 320.0
+            # cmd_vel_pub.publish(command)
+            precise_cmd_in_operation = True
+            precise_cmd_pub.publish(command)
+            print("UA logo approching:", command.angular.z)
+            print(320 - guide_msg.data)
 
-        while not docking_is_on_operation:
-            command.linear.x = 0.2
-            command.angular.z = 0
+            while (precise_cmd_in_operation):
+                pass
+
+        else:
+            # while not docking_is_on_operation:
+            command.linear.x = 0.1
+            command.angular.z = (math.radians(30) * (320 - guide_msg.data) / 320.0)/3
             cmd_vel_pub.publish(command)
+
+    elif mode=="docking" and not docking_is_on_operation and guide_msg==-1:
+        timeSet = rospy.Time.now() + rospy.Duration(3)
+        while rospy.Time.now()< timeSet:
+            if not docking_is_on_operation:
+                mode = "nav"
 
 def precise_cmd_callback(precise_cmd_feedback_msg):
     global mode, precise_cmd_in_operation
@@ -255,8 +268,8 @@ def nav_feedback_callback(nav_feedback_msg):
 rospy.init_node('main_control_node')
 
 ar_pose_sub = rospy.Subscriber('ar_pose', numpy_msg(Floats), ar_pose_callback)
-logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
-logo_approching_guide_sub = rospy.Subscriber('detector_x', Float32, logo_approching_guide_callback)
+# logo_pose_sub = rospy.Subscriber('logo_pose', numpy_msg(Floats), logo_pose_callback)
+# logo_approching_guide_sub = rospy.Subscriber('detector_x', Float32, logo_approching_guide_callback)
 detection_sub = rospy.Subscriber('detector', String, detection_callback)
 # nav_sub = rospy.Subscriber('egg_navigation/raw_cmd_vel', Twist, nav_callback)
 
@@ -269,7 +282,7 @@ precise_cmd_feedback_sub = rospy.Subscriber('control/precise_command/feedback',
                                    String, precise_cmd_callback)
 nav_feedback_sub = rospy.Subscriber('command_to_navi_feedback',
                                    String, nav_feedback_callback)
-
+is_relocate = True
 rate = rospy.Rate(10)
 while not rospy.is_shutdown():
     if mode=="nav":
@@ -279,8 +292,11 @@ while not rospy.is_shutdown():
         # cmd_vel_pub.publish(command)
 
         """ real navigation """
-        if new_born:
+        if new_born and is_relocate:
             nav_pub.publish("Relocate")
+            is_relocate = False
+        else:
+            nav_pub.publish("Start")
 
     elif mode=="undocking":
         do_undocking_sequence()
