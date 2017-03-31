@@ -99,22 +99,16 @@ def command_callback(msg):
             client.cancel_goal()
         pause = True
     elif msg.data == 'Relocate':
-        if not Relocate_is_on_going:
-            Relocate_is_on_going = True
-
-            if client != None:
-                client.cancel_goal()
-            global_localization()
-            timelimit = getTimeSafe() + rospy.Duration(8)
-            tw = Twist()
-            while getTimeSafe() < timelimit:
-                tw.angular.z = 0.8
-                cmd_vel_pub.publish(tw)
-            command_pub.publish('Done')
-            pause = False
-            restart = True
-
-            Relocate_is_on_going = False
+        if client != None:
+            client.cancel_goal()
+        global_localization()
+        timelimit = getTimeSafe() + rospy.Duration(12)
+        while getTimeSafe() < timelimit:
+            tw.angular.z = 0.8
+            cmd_vel_pub.publish(tw)
+        command_pub.publish('Done')
+        pause = False
+        restart = True
 
 
 def pose_callback(msg):
@@ -145,6 +139,17 @@ def main():
         time.sleep(0.1)
 
     # Do some simple movements to find the location
+
+    cmd_vel_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
+    # move = Movement()
+    tw = Twist()
+    # move.start()
+    # move.updateTarget(tw)
+    print 'turning...'
+    timelimit = getTimeSafe() + rospy.Duration(12)
+    while getTimeSafe() < timelimit:
+        tw.angular.z = 0.8
+        cmd_vel_pub.publish(tw)
 
     # move = Movement()
     # tw = Twist()

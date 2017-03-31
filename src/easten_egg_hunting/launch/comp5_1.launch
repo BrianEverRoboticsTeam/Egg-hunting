@@ -7,19 +7,11 @@
   </node> -->
 
   <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
-  <!-- Navigation and Localization -->
-  <include file="$(find turtlebot_navigation)/launch/amcl_demo.launch">
-      <arg name="map_file" value="$(find egg_navigation)/map/map.yaml"/>
-
-      <!--This is the cmd_vel to the main program-->
-      <!--<remap from="navigation_velocity_smoother/raw_cmd_vel" to="egg_navigation/raw_cmd_vel"/>-->
-      <!--<remap from="cmd_vel_mux/input/teleop" to="egg_navigation/raw_cmd_vel"/>-->
-  </include>
   <node name="patrol" pkg="egg_navigation" type="patrol.py"/>
 
   <!--This is not needed if the main program is running-->
   <include file="$(find target_searching)/launch/start.launch"/>
-  <!-- <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/> -->
+  <include file="$(find turtlebot_bringup)/launch/3dsensor.launch"/>
   <node name="joy" pkg="joy" type="joy_node"/>
 
   <!-- front view ar tag node -->
