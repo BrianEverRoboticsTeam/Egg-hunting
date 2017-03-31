@@ -101,7 +101,7 @@ def command_callback(msg):
         if client != None:
             client.cancel_goal()
         global_localization()
-        timelimit = getTimeSafe() + rospy.Duration(8)
+        timelimit = getTimeSafe() + rospy.Duration(12)
         while getTimeSafe() < timelimit:
             tw.angular.z = 0.8
             cmd_vel_pub.publish(tw)
@@ -143,7 +143,7 @@ def main():
     # move.start()
     # move.updateTarget(tw)
     print 'turning...'
-    timelimit = getTimeSafe() + rospy.Duration(8)
+    timelimit = getTimeSafe() + rospy.Duration(12)
     while getTimeSafe() < timelimit:
         tw.angular.z = 0.8
         cmd_vel_pub.publish(tw)

@@ -61,7 +61,7 @@ def odom_callback(msg):
     if(mode == "forwarding"):
         goal_distance = goal_distance - distance_i
         if (goal_distance > 0.2):
-            twist.linear.x = 0.8#goal_distance + 0.5
+            twist.linear.x = 0.2#goal_distance + 0.5
         elif (goal_distance > 0):
             twist.linear.x = goal_distance + 0.3
         else:
@@ -74,7 +74,7 @@ def odom_callback(msg):
     if(mode == "backwarding"):
         goal_distance = goal_distance - abs(distance_i)
         if (goal_distance > 0.2):
-            twist.linear.x = -0.8#goal_distance + 0.5
+            twist.linear.x = -0.2#goal_distance + 0.5
         elif (goal_distance > 0):
             twist.linear.x = -(goal_distance + 0.3)
         else:
@@ -89,7 +89,7 @@ def odom_callback(msg):
 
         """ acurrate version"""
         if (goal_angle > (math.pi/3)*2): # acurate
-            twist.angular.z = 2*math.pi # acurate
+            twist.angular.z = 0.5*math.pi # acurate
         elif (goal_angle > 0):
             # twist.angular.z = (goal_angle / (math.pi / 4)) * math.pi + 0.5# too strong
             # twist.angular.z = goal_angle*2 # acurate
