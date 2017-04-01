@@ -126,6 +126,6 @@ class LogoDetector:
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    rospy.init_node('logo_detector')
+    rospy.init_node('logo_detector_front')
     logo = LogoDetector()
     logo.spin()
