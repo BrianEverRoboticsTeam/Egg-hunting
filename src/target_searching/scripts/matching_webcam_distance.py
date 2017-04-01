@@ -99,13 +99,13 @@ class LogoDetector:
             for pt in zip(*loc_logo[::-1]):
                 cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
 
-            loc_ar = np.where(res_ar > 0.45)
+            loc_ar = np.where(res_ar > 0.6)
             for pt in zip(*loc_ar[::-1]):
                 cv2.rectangle(frame, pt, (pt[0]+w_ar, pt[1]+h_ar), (0,128,255), 2)
             cv2.imshow(meth, frame)
 
             # print loc_logo
-            if res_logo.max() > 0.45 or res_ar.max() > 0.45:
+            if res_logo.max() > 0.45 or res_ar.max() > 0.6:
             # if res_logo.max() > 0.45:
                 self.pub.publish('True')
             else:
