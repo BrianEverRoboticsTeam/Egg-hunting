@@ -38,6 +38,9 @@ class LogoDetector:
         with open(root+'/param/webcam_logo.bin', 'rb') as f:
             self.kh, self.kw = pickle.load(f)
 
+        with open(root+'/param/webcam_ar.bin', 'rb') as f:
+            self.kh_ar, self.kw_ar = pickle.load(f)
+
     def ultrasonic_callback(self, msg):
         self.dist = int(msg.data)
 
@@ -62,7 +65,15 @@ class LogoDetector:
             w = int(round(self.kw / dist))
             h = int(round(self.kh / dist))
 
+            w_ar = int(round(self.kw_ar / dist))
+            h_ar = int(round(self.kh_ar / dist))
+
             if h >= gray.shape[0] or w >= gray.shape[1] or h < 20 or w < 20:
+                # cv2.imshow(meth, frame)
+                self.pub.publish('False')
+                continue
+
+            if h_ar >= gray.shape[0] or w_ar >= gray.shape[1] or h_ar < 20 or w_ar < 20:
                 # cv2.imshow(meth, frame)
                 self.pub.publish('False')
                 continue
@@ -78,7 +89,7 @@ class LogoDetector:
 
             # template = imresize(template, (h, w))
             logo = imresize(self.logo, (h, w))
-            ar_tag = imresize(self.ar_tag, (h, w))
+            ar_tag = imresize(self.ar_tag, (h_ar, w_ar))
 
             res_logo = cv2.matchTemplate(gray, logo, method)
             res_ar = cv2.matchTemplate(gray, ar_tag, method)
@@ -88,14 +99,14 @@ class LogoDetector:
             for pt in zip(*loc_logo[::-1]):
                 cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
 
-            # loc_ar = np.where(res_ar > 0.45)
-            # for pt in zip(*loc_ar[::-1]):
-                # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,128,255), 2)
-            # cv2.imshow(meth, frame)
+            loc_ar = np.where(res_ar > 0.45)
+            for pt in zip(*loc_ar[::-1]):
+                cv2.rectangle(frame, pt, (pt[0]+w_ar, pt[1]+h_ar), (0,128,255), 2)
+            cv2.imshow(meth, frame)
 
             # print loc_logo
-            # if res_logo.max() > 0.45 or res_ar.max() > 0.45:
-            if res_logo.max() > 0.45:
+            if res_logo.max() > 0.45 or res_ar.max() > 0.45:
+            # if res_logo.max() > 0.45:
                 self.pub.publish('True')
             else:
                 self.pub.publish('False')
