@@ -12,7 +12,11 @@ class PreDocking(State):
         self.twist_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist,
                 queue_size = 1)
         self.logo_dir_sub = rospy.Subscriber(
-            'detector_x', Float32, self.logo_approching_guide_callback)
+            'detector_x', Float32, self.logo_approching_guide_callback
+        )
+        self.ar_dir_sub = rospy.Subscriber(
+            'ar_detector_x', Float32, self.ar_approching_guide_callback
+        )
         self.scan_sub = rospy.Subscriber('scan', LaserScan, self.scan_callback)
         self.controller = rospy.Publisher('control/precise_command', Twist,
                 queue_size=1)
@@ -20,11 +24,17 @@ class PreDocking(State):
             'control/precise_command/feedback', String, self.controller_callback)
         self.stopped = False
         self.is_precise_done = False
+        self.target_type = None
+        self.ar_dir_detection_count = 0
+        self.logo_dir_detection_count = 0
         self.tw = Twist()
         self.rate = rospy.Rate(10)
 
     def execute(self, userdata):
         # print("[Debug] preDocking is running")
+        self.target_type = None
+        self.ar_dir_detection_count = 0
+        self.logo_dir_detection_count = 0
         self.stopped = False
         tw = Twist()
         tw.angular.z = -math.pi/2
@@ -45,7 +55,12 @@ class PreDocking(State):
         return 'success'
 
     def logo_approching_guide_callback(self, msg):
+        if self.target_type=='AR_TAG':
+            return
         if msg.data>-1:
+            self.logo_dir_detection_count += 0
+            if self.target_type==None and self.logo_dir_detection_count > 50:
+                self.target_type = 'UA_LOGO'
             angle_in_degree = 30 * (320 - msg.data) / 320.0
             if abs(angle_in_degree) < 1:
                 # self.stopped = True
@@ -58,6 +73,21 @@ class PreDocking(State):
             # self.stopped = True
             self.tw.linear.x = 0.1
             self.tw.angular.z = 0
+
+    def ar_approching_guide_callback(self, msg):
+        if self.target_type=='UA_LOGO':
+            return
+        self.ar_dir_detection_count += 0
+        if self.target_type==None and self.ar_dir_detection_count > 50:
+            self.target_type = 'AR_TAG'
+        angle_in_degree = 30 * (320 - msg.data) / 320.0
+        if abs(angle_in_degree) < 1:
+            # self.stopped = True
+            pass
+        else:
+            self.stopped = False
+            self.tw.angular.z = 2*math.radians(angle_in_degree)
+            self.tw.linear.x = 0.1
 
     def controller_callback(self, msg):
         if msg.data == 'stop':
@@ -75,8 +105,8 @@ class PreDocking(State):
 
         if min(valid_scan_data) < 0.5 or len(valid_scan_data)<200:
             self.stopped = True
-            print "[Debug]", min(valid_scan_data)
-            print "[Debug]", len(valid_scan_data)
+            # print "[Debug]", min(valid_scan_data)
+            # print "[Debug]", len(valid_scan_data)
 
 
 """ This main function is for testing only """

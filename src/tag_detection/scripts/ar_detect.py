@@ -7,6 +7,7 @@ from sensor_msgs.msg import Image
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
+from std_msgs.msg import Float32
 
 # Load previously saved data
 import os
@@ -30,6 +31,8 @@ def image_callback(msg):
     if detect == True:
         imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
         draw(img,imgpts)
+
+        x_pub.publish(tuple(imgpts[3].ravel())[0])
 
     cv2.imshow('ar_track', img)
     cv2.waitKey(1)
@@ -98,6 +101,7 @@ bridge = cv_bridge.CvBridge()
 
 rospy.init_node('ar_pose_reader')
 pub = rospy.Publisher('ar_pose', numpy_msg(Floats), queue_size=10)
+x_pub = rospy.Publisher('ar_detector_x', Float32, queue_size=1)
 #image_sub = rospy.Subscriber('usb_cam/image_raw', Image, image_callback)
 image_sub = rospy.Subscriber('camera/rgb/image_raw', Image, image_callback)
 pose_sub = rospy.Subscriber('ar_pose_marker', AlvarMarkers, pose_callback)
