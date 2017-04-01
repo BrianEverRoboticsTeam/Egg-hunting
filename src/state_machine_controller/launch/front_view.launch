@@ -17,4 +17,10 @@
           $(arg cam_image_topic)
           $(arg cam_info_topic)
           $(arg output_frame)" />
+
+	<node name="ar_detector_front" pkg="tag_detection" type="ar_detect.py" />
+	<node name="logo_dir_guide" pkg="target_searching" type="matching_kinect.py" />
+	<node name="logo_detector_front" pkg="tag_detection" type="logo_detect.py" />
+
+
 </launch>

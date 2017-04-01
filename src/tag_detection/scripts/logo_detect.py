@@ -51,9 +51,9 @@ def image_callback(msg):
         matches = bf.match(des1, des2)
     else:
         print("Vision blocked!")
-        cv2.imshow('output', output)
-        if cv2.waitKey(1) & 0xff == ord('q'):
-            return
+        # cv2.imshow('logo_track', output)
+        # if cv2.waitKey(1) & 0xff == ord('q'):
+        #     return
         return
 
     if len(matches)>MIN_MATCH_COUNT:
@@ -124,20 +124,19 @@ def image_callback(msg):
 
             #print "rvecs:\n", rvecs, "\n", "tvecs:\n", tvecs / (np.ones((3,1)) * WORLD_RATIO), "\n===========\n"
 
-        draw_params = dict(matchColor = (0,255,0), # draw matches in green color
-                        singlePointColor = None,
-                        matchesMask = matchesMask, # draw only inliers
-                        flags = 2)
-        output = cv2.drawMatches(img1,kp1,img2,kp2,perfect_matches,None,**draw_params)
-        # output = cv2.drawMatches(img1,good_kp1,img2,good_kp2,good_matches,None,**draw_params)
+        # draw_params = dict(matchColor = (0,255,0), # draw matches in green color
+        #                 singlePointColor = None,
+        #                 matchesMask = matchesMask, # draw only inliers
+        #                 flags = 2)
+        # output = cv2.drawMatches(img1,kp1,img2,kp2,perfect_matches,None,**draw_params)
 
 
     else:
         print "Not enough matches are found - %d/%d" % (len(matches),MIN_MATCH_COUNT)
         matchesMask = None
 
-    cv2.imshow('logo_track', output)
-    cv2.waitKey(1)
+    # cv2.imshow('logo_track', output)
+    # cv2.waitKey(1)
 
 
 
@@ -150,7 +149,7 @@ detect = False
 cv2.ocl.setUseOpenCL(False)
 
 cam = cv2.VideoCapture(0)
-MIN_MATCH_COUNT = 10
+MIN_MATCH_COUNT = 20
 
 WORLD_RATIO = 135.5/0.0555
 
@@ -164,7 +163,7 @@ axis = np.float32([[0,0,0], [100,0,0], [0,100,0], [0,0,-100]]).reshape(-1,3)
 bridge = cv_bridge.CvBridge()
 
 rospy.init_node('logo_pose_reader')
-pub = rospy.Publisher('logo_pose', numpy_msg(Floats), queue_size=10)
+pub = rospy.Publisher('logo_pose', numpy_msg(Floats), queue_size=1)
 #image_sub = rospy.Subscriber('usb_cam/image_raw', Image, image_callback)
 image_sub = rospy.Subscriber('camera/rgb/image_raw', Image, image_callback)
 

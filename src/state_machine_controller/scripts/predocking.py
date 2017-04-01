@@ -5,6 +5,8 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import LaserScan
 import numpy as np
+from rospy.numpy_msg import numpy_msg
+from rospy_tutorials.msg import Floats
 
 class PreDocking(State):
     def __init__(self):
@@ -16,6 +18,9 @@ class PreDocking(State):
         )
         self.ar_dir_sub = rospy.Subscriber(
             'ar_detector_x', Float32, self.ar_approching_guide_callback
+        )
+        self.logo_pose_guide_sub = rospy.Subscriber(
+            'logo_pose', numpy_msg(Floats), self.logo_pose_guide_callback
         )
         self.scan_sub = rospy.Subscriber('scan', LaserScan, self.scan_callback)
         self.controller = rospy.Publisher('control/precise_command', Twist,
@@ -89,6 +94,9 @@ class PreDocking(State):
             self.tw.angular.z = 2*math.radians(angle_in_degree)
             self.tw.linear.x = 0.1
 
+    def logo_pose_guide_callback(self, msg):
+        self.stopped = True
+        
     def controller_callback(self, msg):
         if msg.data == 'stop':
             self.is_precise_done = True
@@ -110,10 +118,12 @@ class PreDocking(State):
 
 
 """ This main function is for testing only """
+from simulated_explore import SimulatedExplore
 if __name__ == '__main__':
     rospy.init_node('predocking_state_test')
     sm = StateMachine(outcomes=['success'])
     with sm:
+        StateMachine.add('SimulatedExplore', SimulatedExplore(), transitions={'success':'PreDocking'})
         StateMachine.add('PreDocking', PreDocking(), transitions={'success': 'success'})
         time.sleep(0.6)
 

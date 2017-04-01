@@ -18,7 +18,7 @@ class SimulatedExplore(State):
     def execute(self, userdata):
         self.stopped = False
         while not self.stopped:
-            self.tw.linear.x = 0.2
+            self.tw.linear.x = 0.6
             self.twist_pub.publish(self.tw)
             self.rate.sleep()
         return 'success'
