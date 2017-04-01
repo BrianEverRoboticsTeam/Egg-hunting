@@ -18,7 +18,7 @@ class UnDocking(State):
     def execute(self, userdata):
         self.stopped = False
         tw = Twist()
-        tw.linear.x = -0.5
+        tw.linear.x = -0.2
         self.controller.publish(tw)
         while not self.stopped:
             self.rate.sleep()
@@ -26,20 +26,20 @@ class UnDocking(State):
         print 'turn'
 
         tw = Twist()
-        tw.angular.z = pi/2
+        tw.angular.z = 3*pi/4
         self.controller.publish(tw)
         self.stopped = False
         while not self.stopped:
             self.rate.sleep()
 
-        print 'forward'
-
-        tw = Twist()
-        tw.linear.x = 0.8
-        self.controller.publish(tw)
-        self.stopped = False
-        while not self.stopped:
-            self.rate.sleep()
+        # print 'forward'
+        #
+        # tw = Twist()
+        # tw.linear.x = 0.8
+        # self.controller.publish(tw)
+        # self.stopped = False
+        # while not self.stopped:
+        #     self.rate.sleep()
 
         return 'success'
 
@@ -48,4 +48,3 @@ class UnDocking(State):
             self.stopped = True
         else:
             self.stopped = False
-
