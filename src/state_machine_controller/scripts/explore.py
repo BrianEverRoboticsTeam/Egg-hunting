@@ -1,6 +1,9 @@
 import rospy
 import time
+import math
+import actionlib
 from smach import State, StateMachine
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_msgs.msg import String
 
 # 45 degree turns smaller area:
@@ -23,6 +26,13 @@ def goal_pose(pose):
     goal_pose.target_pose.pose.orientation.w = pose[1][3]
     return goal_pose
 
+def getTimeSafe():
+    while True:
+        # rospy may returns zero, so we loop until get a non-zero value.
+        time = rospy.Time.now()
+        if time != rospy.Time(0):
+            return time
+
 
 class Explore(State):
     def __init__(self):
@@ -33,30 +43,53 @@ class Explore(State):
         self.client.wait_for_server()
         self.i = 0
         self.found = False
+        self.arrived = False
+        self.rate = rospy.Rate(10)
 
     def execute(self, userdata):
+        self.found = False
+        self.arrived = False
         while not rospy.is_shutdown():
             while self.i < len(waypoints):
                 pose = waypoints[self.i]
-                self.client.send_goal(goal_pose(pose))
-                if self.client.wait_for_result():
-                    # reached the goal, go to the next goal
-                    self.i += 1
-                elif self.found:
-                    # found a target, go to pre-docking state
-                    # TODO: check if client.cancel_goal will causes
-                    # client.wait_for_result return a False. If not,
-                    # then the robot will stop a sec and skip the current goal
-                    # and go to the next goal.
-                    self.found = False
-                    return 'success'
-                else:
-                    # we lost, go to localization state
-                    return 'lost'
+                self.client.send_goal(goal_pose(pose),
+                        feedback_cb = self.feedback_cb)
+
+
+                timeout = getTimeSafe() + rospy.Duration(30)
+                while True:
+                    if self.arrived:
+                        self.arrived = False
+                        self.found = False
+                        self.client.cancel_goal()
+                        self.i += 1
+                        break
+                    if self.found:
+                        self.arrived = False
+                        self.found = False
+                        self.client.cancel_goal()
+                        return 'success'
+
+                    print 'time left:', timeout - getTimeSafe()
+                    if getTimeSafe() > timeout:
+                        self.client.cancel_goal()
+                        return 'lost'
+
+                    self.rate.sleep()
 
             self.i = 0
 
+
+
+    def feedback_cb(self, feedback):
+        current_pose = waypoints[self.i]
+        dist_x = abs(feedback.base_position.pose.position.x - current_pose[0][0])
+        dist_y = abs(feedback.base_position.pose.position.y - current_pose[0][1])
+        dist = math.sqrt(dist_x**2 + dist_y**2)
+        # print 'distance to target = ', dist
+        if dist < 0.5:
+            self.arrived = True
+
     def side_detector_callback(self, msg):
         if msg.data == 'True':
-            self.client.cancel_goal()
             self.found = True

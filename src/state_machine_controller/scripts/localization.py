@@ -2,6 +2,7 @@ import rospy
 import time
 from smach import State, StateMachine
 from geometry_msgs.msg import Twist
+from std_srvs.srv import Empty
 from math import pi
 
 def getTimeSafe():
@@ -34,6 +35,6 @@ class Localization(State):
         timelimit = getTimeSafe() + rospy.Duration(duration)
         while getTimeSafe() < timelimit:
             tw.angular.z = speed
-            cmd_vel_pub.publish(tw)
+            self.twist_pub.publish(tw)
 
         return 'success'
