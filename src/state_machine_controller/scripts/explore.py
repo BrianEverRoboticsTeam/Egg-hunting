@@ -56,7 +56,7 @@ class Explore(State):
                         feedback_cb = self.feedback_cb)
 
 
-                timeout = getTimeSafe() + rospy.Duration(30)
+                timeout = getTimeSafe() + rospy.Duration(20)
                 while True:
                     if self.arrived:
                         self.arrived = False
