@@ -73,6 +73,7 @@ class PreDocking(State):
         self.target_type = None
         self.ar_dir_detection_count = 0
         self.logo_dir_detection_count = 0
+        self.min_distance_ahead = 10
         self.tw = Twist()
         self.rate = rospy.Rate(10)
 
@@ -81,6 +82,7 @@ class PreDocking(State):
         self.target_type = None
         self.ar_dir_detection_count = 0
         self.logo_dir_detection_count = 0
+        self.min_distance_ahead = 0.5
         self.stopped = False
         tw = Twist()
         tw.angular.z = -math.pi/2
@@ -96,10 +98,16 @@ class PreDocking(State):
         time.sleep(2)
         self.stopped = False
         while not self.stopped:
+            if self.min_distance_ahead > 3:
+                self.tw.linear.x = 0.7
+            elif self.min_distance_ahead > 1.4:
+                self.tw.linear.x = self.min_distance_ahead/7
+            else:
+                self.tw.linear.x = 0.08
             self.twist_pub.publish(self.tw)
             self.rate.sleep()
         print(self.target_type)
-        if self.target_type!=None
+        if self.target_type!=None:
             self.sound_control.send_sound(self.target_type)
             time.sleep(3)
             return 'success'
@@ -116,14 +124,15 @@ class PreDocking(State):
             angle_in_degree = 30 * (320 - msg.data) / 320.0
             if abs(angle_in_degree) < 1:
                 # self.stopped = True
+                self.tw.angular.z = 0.0
                 pass
             else:
                 self.stopped = False
                 self.tw.angular.z = 4*math.radians(angle_in_degree)
-                self.tw.linear.x = 0.1
+                # self.tw.linear.x = 0.1
         else:
             # self.stopped = True
-            self.tw.linear.x = 0.1
+            # self.tw.linear.x = 0.1
             self.tw.angular.z = 0
 
     def ar_approching_guide_callback(self, msg):
@@ -135,13 +144,15 @@ class PreDocking(State):
         angle_in_degree = 30 * (320 - msg.data) / 320.0
         if abs(angle_in_degree) < 1:
             # self.stopped = True
+            self.tw.angular.z = 0.0
             pass
         else:
             self.stopped = False
             self.tw.angular.z = 2*math.radians(angle_in_degree)
-            self.tw.linear.x = 0.1
+            # self.tw.linear.x = 0.1
 
     def logo_pose_guide_callback(self, msg):
+        self.target_type = 'UA_LOGO'
         self.stopped = True
 
     def controller_callback(self, msg):
@@ -158,10 +169,14 @@ class PreDocking(State):
             if not np.isnan(distance):
                 valid_scan_data.append(distance)
 
-        if min(valid_scan_data) < 0.5 or len(valid_scan_data)<200:
+        if  len(valid_scan_data)<200 or min(valid_scan_data) < 0.5:
+            self.min_distance_ahead = 0.5
             self.stopped = True
             # print "[Debug]", min(valid_scan_data)
             # print "[Debug]", len(valid_scan_data)
+        else:
+            self.min_distance_ahead = min(valid_scan_data)
+
 
 
 """ This main function is for testing only """
