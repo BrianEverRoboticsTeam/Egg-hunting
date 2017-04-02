@@ -22,9 +22,13 @@ class Localization(State):
         rospy.wait_for_service('global_localization')
         self.global_localization = rospy.ServiceProxy('global_localization',
                 Empty)
+        rospy.wait_for_service('move_base/clear_unknown_space')
+        self.clear_unknown_space = rospy.ServiceProxy(
+                'move_base/clear_unknown_space', Empty)
 
     def execute(self, userdata):
         # reset AMCL localizer
+        self.clear_unknown_space()
         self.global_localization()
         time.sleep(0.5) # wait for system to process
 
