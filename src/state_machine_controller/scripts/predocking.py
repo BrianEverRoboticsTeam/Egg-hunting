@@ -7,12 +7,52 @@ from sensor_msgs.msg import LaserScan
 import numpy as np
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
+from kobuki_msgs.msg import Sound
+
+class SoundController():
+    def __init__(self):
+        self.sound_pub = rospy.Publisher('/mobile_base/commands/sound', Sound,
+            queue_size = 1)
+
+    def send_sound(self, type):
+        sound = Sound()
+
+        if type=="UA_LOGO":
+            sound.value = 1
+            self.sound_pub.publish(sound)
+            time.sleep(0.3)
+            sound.value = 1
+            self.sound_pub.publish(sound)
+            time.sleep(0.3)
+            sound.value = 0
+            self.sound_pub.publish(sound)
+            time.sleep(1)
+
+        elif type=="AR_TAG":
+            sound.value = 0
+            self.sound_pub.publish(sound)
+            time.sleep(0.3)
+            sound.value = 0
+            self.sound_pub.publish(sound)
+            time.sleep(0.3)
+            sound.value = 1
+            self.sound_pub.publish(sound)
+            time.sleep(1)
+            # sound.value = 4
+            # self.sound_pub.publish(sound)
+            # time.sleep(1)
+            # sound.value = 5
+            # self.sound_pub.publish(sound)
+            # time.sleep(1)
+            # sound.value = 6
+            # self.sound_pub.publish(sound)
+
 
 class PreDocking(State):
     def __init__(self):
-        State.__init__(self, outcomes=['success'])
+        State.__init__(self, outcomes=['success', 'failed'])
         self.twist_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist,
-                queue_size = 1)
+            queue_size = 1)
         self.logo_dir_sub = rospy.Subscriber(
             'detector_x', Float32, self.logo_approching_guide_callback
         )
@@ -27,6 +67,7 @@ class PreDocking(State):
                 queue_size=1)
         self.controller_feedback = rospy.Subscriber(
             'control/precise_command/feedback', String, self.controller_callback)
+        self.sound_control = SoundController()
         self.stopped = False
         self.is_precise_done = False
         self.target_type = None
@@ -57,14 +98,20 @@ class PreDocking(State):
         while not self.stopped:
             self.twist_pub.publish(self.tw)
             self.rate.sleep()
-        return 'success'
+        print(self.target_type)
+        if self.target_type!=None
+            self.sound_control.send_sound(self.target_type)
+            time.sleep(3)
+            return 'success'
+        else:
+            return 'failed'
 
     def logo_approching_guide_callback(self, msg):
         if self.target_type=='AR_TAG':
             return
         if msg.data>-1:
-            self.logo_dir_detection_count += 0
-            if self.target_type==None and self.logo_dir_detection_count > 50:
+            self.logo_dir_detection_count += 1
+            if self.target_type==None and self.logo_dir_detection_count > 20:
                 self.target_type = 'UA_LOGO'
             angle_in_degree = 30 * (320 - msg.data) / 320.0
             if abs(angle_in_degree) < 1:
@@ -72,7 +119,7 @@ class PreDocking(State):
                 pass
             else:
                 self.stopped = False
-                self.tw.angular.z = 6*math.radians(angle_in_degree)
+                self.tw.angular.z = 4*math.radians(angle_in_degree)
                 self.tw.linear.x = 0.1
         else:
             # self.stopped = True
@@ -82,7 +129,7 @@ class PreDocking(State):
     def ar_approching_guide_callback(self, msg):
         if self.target_type=='UA_LOGO':
             return
-        self.ar_dir_detection_count += 0
+        self.ar_dir_detection_count += 1
         if self.target_type==None and self.ar_dir_detection_count > 50:
             self.target_type = 'AR_TAG'
         angle_in_degree = 30 * (320 - msg.data) / 320.0
@@ -96,7 +143,7 @@ class PreDocking(State):
 
     def logo_pose_guide_callback(self, msg):
         self.stopped = True
-        
+
     def controller_callback(self, msg):
         if msg.data == 'stop':
             self.is_precise_done = True
@@ -121,6 +168,8 @@ class PreDocking(State):
 from simulated_explore import SimulatedExplore
 if __name__ == '__main__':
     rospy.init_node('predocking_state_test')
+
+    """ state test """
     sm = StateMachine(outcomes=['success'])
     with sm:
         StateMachine.add('SimulatedExplore', SimulatedExplore(), transitions={'success':'PreDocking'})
@@ -128,3 +177,12 @@ if __name__ == '__main__':
         time.sleep(0.6)
 
     sm.execute()
+
+    """ sound test """
+    # sound_control = SoundController()
+    # rate = rospy.Rate(10)
+    # while not rospy.is_shutdown():
+    #     raw_input()
+    #     # sound_control.send_sound("UA_LOGO")
+    #     sound_control.send_sound("AR_TAG")
+    #     rate.sleep()

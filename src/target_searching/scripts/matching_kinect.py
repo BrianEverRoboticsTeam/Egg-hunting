@@ -79,7 +79,7 @@ class LogoDetector:
             res = cv2.matchTemplate(gray, template, method)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
             pt = min_loc
-            if max_val > 0.45:
+            if max_val > 0.6:
                 # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
                 x = pt[0] + w/2
                 self.x_pub.publish(x)

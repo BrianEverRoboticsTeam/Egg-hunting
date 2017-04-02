@@ -26,9 +26,11 @@ class Docking(State):
         # self.stopped = False
         # while not self.stopped:
         #     self.rate.sleep()
-        sound = Sound()
-        sound.value = 0
-        self.sound_pub.publish(sound)
+
+        # time.sleep(5)
+        # sound = Sound()
+        # sound.value = 0
+        # self.sound_pub.publish(sound)
         time.sleep(2)
         return 'success'
 
