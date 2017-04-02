@@ -9,6 +9,8 @@ from matplotlib import pyplot as plt
 from scipy.misc import imresize
 import scipy
 
+decay = 0.5
+
 class LogoDetector:
     def __init__(self):
         self.rate = rospy.Rate(10)
@@ -30,6 +32,7 @@ class LogoDetector:
         self.template_original = cv2.GaussianBlur(self.template_original, (9,9), 0)
         # self.template_original = cv2.blur(self.template_original, (9,9))
         # cv2.imshow('original template', self.template_original)
+        self.last_x = None
 
     def image_callback(self, msg):
         self.image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -82,7 +85,10 @@ class LogoDetector:
             if max_val > 0.6:
                 # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
                 x = pt[0] + w/2
+                if self.last_x != None:
+                    x = (1 - decay) * x + decay * self.last_x
                 self.x_pub.publish(x)
+                self.last_x = x
             else:
                 self.x_pub.publish(-1.0)
             # loc = np.where(res > 0.45)
