@@ -109,9 +109,9 @@ class PreDocking(State):
             self.twist_pub.publish(self.tw)
             self.rate.sleep()
         print(self.target_type)
+        time.sleep(3)
         if self.target_type!=None:
             self.sound_control.send_sound(self.target_type)
-            time.sleep(3)
             return 'success'
         else:
             return 'failed'
