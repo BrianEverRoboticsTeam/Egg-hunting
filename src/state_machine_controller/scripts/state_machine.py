@@ -23,7 +23,7 @@ if __name__ == '__main__':
                 # transitions={'success': 'PreDocking'})
 
         StateMachine.add('PreDocking', PreDocking(),
-                transitions={'success': 'Docking', 'failed': 'Explore'})
+                transitions={'success': 'Docking', 'failed': 'UnDocking'})
 
         StateMachine.add('Docking', Docking(),
                 transitions={'success': 'UnDocking'})

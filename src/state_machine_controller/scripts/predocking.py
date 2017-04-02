@@ -100,8 +100,10 @@ class PreDocking(State):
         while not self.stopped:
             if self.min_distance_ahead > 3:
                 self.tw.linear.x = 0.7
+                self.tw.angular.z = 0
             elif self.min_distance_ahead > 1.4:
                 self.tw.linear.x = self.min_distance_ahead/7
+                self.tw.angular.z = self.tw.angular.z/2
             else:
                 self.tw.linear.x = 0.08
             self.twist_pub.publish(self.tw)
@@ -139,7 +141,7 @@ class PreDocking(State):
         if self.target_type=='UA_LOGO':
             return
         self.ar_dir_detection_count += 1
-        if self.target_type==None and self.ar_dir_detection_count > 50:
+        if self.target_type==None and self.ar_dir_detection_count > 5:
             self.target_type = 'AR_TAG'
         angle_in_degree = 30 * (320 - msg.data) / 320.0
         if abs(angle_in_degree) < 1:
