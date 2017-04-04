@@ -130,7 +130,7 @@ class PreDocking(State):
                 pass
             else:
                 self.stopped = False
-                self.tw.angular.z = 4*math.radians(angle_in_degree)
+                self.tw.angular.z = 2*math.radians(angle_in_degree)
                 # self.tw.linear.x = 0.1
         else:
             # self.stopped = True
@@ -155,7 +155,7 @@ class PreDocking(State):
 
     def logo_pose_guide_callback(self, msg):
         self.target_type = 'UA_LOGO'
-        self.stopped = True
+        # self.stopped = True
 
     def controller_callback(self, msg):
         if msg.data == 'stop':
@@ -171,8 +171,8 @@ class PreDocking(State):
             if not np.isnan(distance):
                 valid_scan_data.append(distance)
 
-        if  len(valid_scan_data)<200 or min(valid_scan_data) < 0.5:
-            self.min_distance_ahead = 0.5
+        if  len(valid_scan_data)<150 or min(valid_scan_data) < 0.47:
+            self.min_distance_ahead = 0.45
             self.stopped = True
             # print "[Debug]", min(valid_scan_data)
             # print "[Debug]", len(valid_scan_data)
@@ -187,10 +187,10 @@ if __name__ == '__main__':
     rospy.init_node('predocking_state_test')
 
     """ state test """
-    sm = StateMachine(outcomes=['success'])
+    sm = StateMachine(outcomes=['success', 'failed'])
     with sm:
         StateMachine.add('SimulatedExplore', SimulatedExplore(), transitions={'success':'PreDocking'})
-        StateMachine.add('PreDocking', PreDocking(), transitions={'success': 'success'})
+        StateMachine.add('PreDocking', PreDocking(), transitions={'success': 'success', 'failed':'failed'})
         time.sleep(0.6)
 
     sm.execute()

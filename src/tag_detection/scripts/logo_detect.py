@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from sensor_msgs.msg import Image
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
+from std_msgs.msg import Float32
 
 # Load previously saved data
 import os
@@ -109,6 +110,7 @@ def image_callback(msg):
         # _, rvecs, tvecs, inliers = cv2.solvePnPRansac(src_pts_array, dst, mtx, dist)
         ret, rvecs, tvecs = cv2.solvePnP(src_pts_array, dst, mtx, dist)
         imgpts, shipped_jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
+
         if count > 20:
             img2 = draw(img2, imgpts)
 
@@ -121,6 +123,7 @@ def image_callback(msg):
             # print("pose:")
             # print(pose)
             pub.publish(pose)
+            logo_dir_pub.publish(tuple(imgpts[0].ravel())[0])
 
             #print "rvecs:\n", rvecs, "\n", "tvecs:\n", tvecs / (np.ones((3,1)) * WORLD_RATIO), "\n===========\n"
 
@@ -163,6 +166,7 @@ axis = np.float32([[0,0,0], [100,0,0], [0,100,0], [0,0,-100]]).reshape(-1,3)
 bridge = cv_bridge.CvBridge()
 
 rospy.init_node('logo_pose_reader')
+logo_dir_pub = rospy.Publisher('ar_detector_x', Float32, queue_size=1)
 pub = rospy.Publisher('logo_pose', numpy_msg(Floats), queue_size=1)
 #image_sub = rospy.Subscriber('usb_cam/image_raw', Image, image_callback)
 image_sub = rospy.Subscriber('camera/rgb/image_raw', Image, image_callback)
