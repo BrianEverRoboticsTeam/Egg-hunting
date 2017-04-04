@@ -61,4 +61,5 @@ class UnDocking(State):
             self.stopped = False
 
     def move_base_cb(self, msg):
-        self.current_position = msg.feedback.base_position.pose
+        """ Get the current position """
+        self.current_position = msg.feedback.base_position.pose.position

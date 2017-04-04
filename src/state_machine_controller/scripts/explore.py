@@ -9,8 +9,12 @@ from std_msgs.msg import String
 # 45 degree turns smaller area:
 waypoints = [
     [(-2.12, 2.88, 0.0), (0.0, 0.0, -0.93, 0.36)],
+
     [(-2.45, -1.25, 0.0), (0.0, 0.0, -0.36, 0.93)],
-    [(8.01, -2.03, 0.0), (0.0, 0.0, 0.36, 0.93)],
+
+    # [(8.01, -2.03, 0.0), (0.0, 0.0, 0.36, 0.93)],
+    [(7.20, -1.44, 0.0), (0.0, 0.0, 0.35, 0.94)],
+
     [(8.20, 2.26, 0.0), (0.0, 0.0, 0.92, 0.39)]
 ]
 
@@ -74,22 +78,32 @@ class Explore(State):
                         self.i += 1
                         break
                     if self.found:
+                        # Found target
+
                         # if self.last_docking_position == None or distance(
                                 # self.current_position,
                                 # self.last_docking_position
                                 # ) > 0.8:
-                        try:
-                            if distance(
-                                    userdata.docking_position,
-                                    self.current_position) > 0.8:
-                                # self.last_docking_position = self.current_position
-                                self.arrived = False
-                                self.found = False
-                                self.client.cancel_goal()
-                                return 'success'
-                        except KeyError:
-                            pass
 
+                        # Try if this is the first time entering this state
+                        first_time = False
+                        try:
+                            dist_to_last = distance(
+                                    userdata.docking_position,
+                                    self.current_position)
+                            print 'Distance to last target = ', dist_to_last
+                        except KeyError:
+                            first_time = True
+
+                        if first_time or dist_to_last > 1.5:
+                            # Start docking
+                            # self.last_docking_position = self.current_position
+                            self.arrived = False
+                            self.found = False
+                            self.client.cancel_goal()
+                            return 'success'
+
+                    # Count timeout for re-localization
                     print 'time left:', timeout - getTimeSafe()
                     if getTimeSafe() > timeout:
                         self.client.cancel_goal()
