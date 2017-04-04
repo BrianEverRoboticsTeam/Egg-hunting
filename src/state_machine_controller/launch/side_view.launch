@@ -31,6 +31,6 @@
 
 	<node name="ultrasonic" pkg="target_searching" type="ultrasonic.py"/>
 	<node name="logo_detector" pkg="target_searching" type="matching_webcam_distance.py"/>
-	<node name="side_view_ar_detector" pkg="target_searching" type="ar_search.py" />
+	<!-- <node name="side_view_ar_detector" pkg="target_searching" type="ar_search.py" /> -->
 
 </launch>
