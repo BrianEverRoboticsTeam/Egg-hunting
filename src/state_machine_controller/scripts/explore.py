@@ -33,10 +33,17 @@ def getTimeSafe():
         if time != rospy.Time(0):
             return time
 
+def distance(position1, position2):
+    dist_x = abs(position1.x - position2.x)
+    dist_y = abs(position1.y - position2.y)
+    return math.sqrt(dist_x**2 + dist_y**2)
+
+
 
 class Explore(State):
     def __init__(self):
-        State.__init__(self, outcomes=['success', 'lost'])
+        State.__init__(self, outcomes=['success', 'lost'],
+                input_keys=['docking_position'])
         self.side_detector = rospy.Subscriber('detector', String,
                 self.side_detector_callback)
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
@@ -44,6 +51,8 @@ class Explore(State):
         self.i = 0
         self.found = False
         self.arrived = False
+        self.current_position = None
+        self.last_docking_position = None
         self.rate = rospy.Rate(10)
 
     def execute(self, userdata):
@@ -65,10 +74,21 @@ class Explore(State):
                         self.i += 1
                         break
                     if self.found:
-                        self.arrived = False
-                        self.found = False
-                        self.client.cancel_goal()
-                        return 'success'
+                        # if self.last_docking_position == None or distance(
+                                # self.current_position,
+                                # self.last_docking_position
+                                # ) > 0.8:
+                        try:
+                            if distance(
+                                    userdata.docking_position,
+                                    self.current_position) > 0.8:
+                                # self.last_docking_position = self.current_position
+                                self.arrived = False
+                                self.found = False
+                                self.client.cancel_goal()
+                                return 'success'
+                        except KeyError:
+                            pass
 
                     print 'time left:', timeout - getTimeSafe()
                     if getTimeSafe() > timeout:
@@ -82,9 +102,11 @@ class Explore(State):
 
 
     def feedback_cb(self, feedback):
-        current_pose = waypoints[self.i]
-        dist_x = abs(feedback.base_position.pose.position.x - current_pose[0][0])
-        dist_y = abs(feedback.base_position.pose.position.y - current_pose[0][1])
+        current_position = feedback.base_position.pose.position
+        self.current_position = current_position
+        objective_pose = waypoints[self.i]
+        dist_x = abs(current_position.x - objective_pose[0][0])
+        dist_y = abs(current_position.y - objective_pose[0][1])
         dist = math.sqrt(dist_x**2 + dist_y**2)
         # print 'distance to target = ', dist
         if dist < 0.5:

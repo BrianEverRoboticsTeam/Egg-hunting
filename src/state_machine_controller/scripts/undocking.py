@@ -3,15 +3,20 @@ import time
 from smach import State, StateMachine
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
+from move_base_msgs.msg import MoveBaseActionFeedback
 from math import pi
 
 class UnDocking(State):
     def __init__(self):
-        State.__init__(self, outcomes=['success'])
+        State.__init__(self, outcomes=['success'],
+                output_keys=['docking_position'])
         self.controller = rospy.Publisher('control/precise_command', Twist,
                 queue_size=1)
         self.controller_feedback = rospy.Subscriber(
             'control/precise_command/feedback', String, self.controller_callback)
+        self.move_base = rospy.Subscriber('move_base/feedback',
+                MoveBaseActionFeedback, self.move_base_cb)
+        self.current_position = None
         self.stopped = False
         self.rate = rospy.Rate(10)
 
@@ -41,6 +46,12 @@ class UnDocking(State):
         # while not self.stopped:
         #     self.rate.sleep()
 
+        while self.current_position == None:
+            self.rate.sleep()
+
+        userdata.docking_position = self.current_position
+        self.current_position = None
+
         return 'success'
 
     def controller_callback(self, msg):
@@ -48,3 +59,6 @@ class UnDocking(State):
             self.stopped = True
         else:
             self.stopped = False
+
+    def move_base_cb(self, msg):
+        self.current_position = msg.feedback.base_position.pose
