@@ -71,11 +71,21 @@ class Explore(State):
         while not rospy.is_shutdown():
             while self.i < len(waypoints):
                 pose = waypoints[self.i]
-                self.client.send_goal(goal_pose(pose),
+                goal_position = goal_pose(pose)
+                self.client.send_goal(goal_position,
                         feedback_cb = self.feedback_cb)
 
+                # Wait for current_position
+                while self.current_position == None:
+                    self.rate.sleep()
+                # Calculate the estimated distance and time to goal
+                # assume moving speed is 0.4
+                dist_to_goal = distance(self.current_position, movebase_goal)
+                estmated_time = int(round(dist_to_goal / 0.4))
 
-                timeout = getTimeSafe() + rospy.Duration(25)
+                # Set the timeout related to the estimated time to goal
+                timeout = getTimeSafe() + rospy.Duration(estmated_time+5)
+
                 while True:
                     if self.arrived:
                         self.arrived = False
@@ -124,10 +134,8 @@ class Explore(State):
     def feedback_cb(self, feedback):
         current_position = feedback.base_position.pose.position
         self.current_position = current_position
-        objective_pose = waypoints[self.i]
-        dist_x = abs(current_position.x - objective_pose[0][0])
-        dist_y = abs(current_position.y - objective_pose[0][1])
-        dist = math.sqrt(dist_x**2 + dist_y**2)
+        objective_position = goal_pose(waypoints[self.i])
+        dist = distance(current_position, objective_position)
         # print 'distance to target = ', dist
         if dist < 0.5:
             self.arrived = True
