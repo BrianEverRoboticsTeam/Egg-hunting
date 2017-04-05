@@ -8,6 +8,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.misc import imresize
 import scipy
+import cPickle as pickle
+import os
 
 decay = 0.5
 
@@ -33,6 +35,10 @@ class LogoDetector:
         # self.template_original = cv2.blur(self.template_original, (9,9))
         # cv2.imshow('original template', self.template_original)
         self.last_x = None
+
+        root = os.path.dirname(os.path.abspath(__file__))
+        with open(root+'/param/kinect_logo.bin', 'rb') as f:
+            self.kh, self.kw = pickle.load(f)
 
     def image_callback(self, msg):
         self.image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
@@ -61,10 +67,12 @@ class LogoDetector:
 
             # print 'dist:', dist
 
-            w = int(round(94895.492 / dist))
-            h = int(round(119687.266 / dist))
+            # w = int(round(94895.492 / dist))
+            # h = int(round(119687.266 / dist))
+            w = int(round(self.kw / dist))
+            h = int(round(self.kh / dist))
 
-            if h >= gray.shape[0] or w >= gray.shape[1] or h < 10 or w < 10:
+            if h >= gray.shape[0] or w >= gray.shape[1] or h < 30 or w < 30:
                 # cv2.imshow(meth, frame)
                 self.x_pub.publish(-1.0)
                 continue
@@ -81,9 +89,9 @@ class LogoDetector:
             template = imresize(template, (h, w))
             res = cv2.matchTemplate(gray, template, method)
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-            pt = min_loc
+            pt = max_loc
             if max_val > 0.45:
-                # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
+                cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
                 x = pt[0] + w/2
                 if self.last_x != None:
                     x = (1 - decay) * x + decay * self.last_x
@@ -94,7 +102,7 @@ class LogoDetector:
             # loc = np.where(res > 0.45)
             # for pt in zip(*loc[::-1]):
                 # cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
-            # cv2.imshow(meth, frame)
+        # cv2.imshow('detector', frame)
 
 
 

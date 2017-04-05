@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import rospy
 from sensor_msgs.msg import Image
 import cv_bridge
@@ -6,6 +8,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.misc import imresize
 import scipy
+import cPickle as pickle
+import os
+
+root = os.path.dirname(os.path.abspath(__file__))
 
 class LogoDetector:
     def __init__(self):
@@ -20,8 +26,8 @@ class LogoDetector:
         self.depth = None
 
         # Prepare templates at multiple scales:
-        self.template_original = cv2.imread('logo.png',0)
-        self.template_original = imresize(self.template_original, 0.8)
+        self.template_original = cv2.imread(root+'/logo.png',0)
+        self.template_original = imresize(self.template_original, 0.3)
         self.template_original = cv2.GaussianBlur(self.template_original, (9,9), 0)
         # self.template_original = cv2.blur(self.template_original, (9,9))
         cv2.imshow('original template', self.template_original)
@@ -57,6 +63,7 @@ class LogoDetector:
             # Apply template Matching
             for template in self.templates:
                 w, h = template.shape[::-1]
+
                 res = cv2.matchTemplate(gray,template,method)
 
                 # normalize for imshow:
@@ -119,7 +126,7 @@ class LogoDetector:
         kw_mean = np.mean(kw_array)
         kw_median = np.median(kw_array)
 
-        with open('param/kinect_logo.bin', 'wb') as f:
+        with open(root+'/param/kinect_logo.bin', 'wb') as f:
             pickle.dump([kh_median, kw_median], f, pickle.HIGHEST_PROTOCOL)
 
         print 'Summary:'

@@ -102,7 +102,7 @@ class LogoDetector:
             loc_ar = np.where(res_ar > 0.6)
             for pt in zip(*loc_ar[::-1]):
                 cv2.rectangle(frame, pt, (pt[0]+w_ar, pt[1]+h_ar), (0,128,255), 2)
-            cv2.imshow(meth, frame)
+            # cv2.imshow(meth, frame)
 
             # print loc_logo
             if res_logo.max() > 0.45 or res_ar.max() > 0.75:
@@ -123,8 +123,8 @@ class LogoDetector:
             frame = self.image.copy()
             self.detection(frame)
 
-            if cv2.waitKey(1) & 0xff == ord('q'):
-                break
+            # if cv2.waitKey(1) & 0xff == ord('q'):
+                # break
             self.rate.sleep()
 
 
