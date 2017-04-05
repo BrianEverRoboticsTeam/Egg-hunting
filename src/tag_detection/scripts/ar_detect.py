@@ -15,6 +15,7 @@ root = os.path.dirname(os.path.abspath(__file__))
 npzfile = np.load(root + '/test.npz')
 mtx = npzfile['arr_0']
 dist = npzfile['arr_1']
+is_show_image = False
 
 def draw(img, imgpts):
     corner = tuple(imgpts[3].ravel())
@@ -24,18 +25,20 @@ def draw(img, imgpts):
     return img
 
 def image_callback(msg):
-    global tvecs, rvecs, detect
+    global tvecs, rvecs, detect, is_show_image
 
     img = bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
 
     if detect == True:
         imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
-        draw(img,imgpts)
+        if is_show_image:
+            draw(img,imgpts)
 
         x_pub.publish(tuple(imgpts[3].ravel())[0])
 
-    cv2.imshow('ar_track', img)
-    cv2.waitKey(1)
+    if is_show_image:
+        cv2.imshow('ar_track', img)
+        cv2.waitKey(1)
 
 def pose_callback(msg):
     global tvecs, rvecs, detect
