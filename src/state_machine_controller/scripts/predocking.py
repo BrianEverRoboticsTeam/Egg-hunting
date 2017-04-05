@@ -8,6 +8,8 @@ import numpy as np
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 from kobuki_msgs.msg import Sound
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
 
 class SoundController():
     def __init__(self):
@@ -16,6 +18,14 @@ class SoundController():
 
     def send_sound(self, type):
         sound = Sound()
+
+        # soundhandle = SoundClient()
+        # rospy.sleep(0.5)
+        #
+        # # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/smb2_grow.wav"
+        # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
+        # soundhandle.playWave(sound_src)
+        # rospy.sleep(1)
 
         if type=="UA_LOGO":
             sound.value = 1
@@ -38,14 +48,6 @@ class SoundController():
             sound.value = 1
             self.sound_pub.publish(sound)
             time.sleep(1)
-            # sound.value = 4
-            # self.sound_pub.publish(sound)
-            # time.sleep(1)
-            # sound.value = 5
-            # self.sound_pub.publish(sound)
-            # time.sleep(1)
-            # sound.value = 6
-            # self.sound_pub.publish(sound)
 
 
 class PreDocking(State):
@@ -171,8 +173,8 @@ class PreDocking(State):
             if not np.isnan(distance):
                 valid_scan_data.append(distance)
 
-        if  len(valid_scan_data)<150 or min(valid_scan_data) < 0.47:
-            self.min_distance_ahead = 0.45
+        if  len(valid_scan_data)<190 or min(valid_scan_data) < 0.5:
+            self.min_distance_ahead = 0.5
             self.stopped = True
             # print "[Debug]", min(valid_scan_data)
             # print "[Debug]", len(valid_scan_data)
@@ -187,19 +189,20 @@ if __name__ == '__main__':
     rospy.init_node('predocking_state_test')
 
     """ state test """
-    sm = StateMachine(outcomes=['success', 'failed'])
-    with sm:
-        StateMachine.add('SimulatedExplore', SimulatedExplore(), transitions={'success':'PreDocking'})
-        StateMachine.add('PreDocking', PreDocking(), transitions={'success': 'success', 'failed':'failed'})
-        time.sleep(0.6)
-
-    sm.execute()
+    # sm = StateMachine(outcomes=['success', 'failed'])
+    # with sm:
+    #     StateMachine.add('SimulatedExplore', SimulatedExplore(), transitions={'success':'PreDocking'})
+    #     StateMachine.add('PreDocking', PreDocking(), transitions={'success': 'success', 'failed':'failed'})
+    #     time.sleep(0.6)
+    #
+    # sm.execute()
 
     """ sound test """
-    # sound_control = SoundController()
-    # rate = rospy.Rate(10)
-    # while not rospy.is_shutdown():
-    #     raw_input()
-    #     # sound_control.send_sound("UA_LOGO")
-    #     sound_control.send_sound("AR_TAG")
-    #     rate.sleep()
+    sound_control = SoundController()
+    rate = rospy.Rate(10)
+    while not rospy.is_shutdown():
+        raw_input()
+        # sound_control.send_sound("UA_LOGO")
+        # sound_control.send_sound("AR_TAG")
+        sound_control.send_sound(None)
+        rate.sleep()

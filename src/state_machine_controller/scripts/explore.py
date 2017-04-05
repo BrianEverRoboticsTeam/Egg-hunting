@@ -60,6 +60,12 @@ class Explore(State):
         self.rate = rospy.Rate(10)
 
     def execute(self, userdata):
+        soundhandle = SoundClient()
+        rospy.sleep(0.5)
+        sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
+        soundhandle.playWave(sound_src)
+        # rospy.sleep(1)
+
         self.found = False
         self.arrived = False
         while not rospy.is_shutdown():

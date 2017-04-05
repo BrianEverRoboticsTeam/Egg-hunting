@@ -20,18 +20,12 @@ class Docking(State):
 
     def execute(self, userdata):
 
-        # tw = Twist()
-        # tw.linear.x = 0.5
-        # self.controller.publish(tw)
-        # self.stopped = False
-        # while not self.stopped:
-        #     self.rate.sleep()
-
-        # time.sleep(5)
-        # sound = Sound()
-        # sound.value = 0
-        # self.sound_pub.publish(sound)
-        time.sleep(2)
+        soundhandle = SoundClient()
+        rospy.sleep(0.5)
+        sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/smb2_grow.wav"
+        # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
+        soundhandle.playWave(sound_src)
+        rospy.sleep(1)
         return 'success'
 
     def controller_callback(self, msg):
