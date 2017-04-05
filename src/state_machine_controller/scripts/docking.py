@@ -6,6 +6,8 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 from math import pi
 from kobuki_msgs.msg import Sound
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
 
 class Docking(State):
     def __init__(self):

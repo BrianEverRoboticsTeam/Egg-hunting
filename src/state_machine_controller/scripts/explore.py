@@ -5,6 +5,8 @@ import actionlib
 from smach import State, StateMachine
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_msgs.msg import String
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
 
 # 45 degree turns smaller area:
 waypoints = [
@@ -80,7 +82,7 @@ class Explore(State):
                     self.rate.sleep()
                 # Calculate the estimated distance and time to goal
                 # assume moving speed is 0.4
-                dist_to_goal = distance(self.current_position, movebase_goal)
+                dist_to_goal = distance(self.current_position, goal_position.target_pose.pose.position)
                 estmated_time = int(round(dist_to_goal / 0.4))
 
                 # Set the timeout related to the estimated time to goal
@@ -134,7 +136,7 @@ class Explore(State):
     def feedback_cb(self, feedback):
         current_position = feedback.base_position.pose.position
         self.current_position = current_position
-        objective_position = goal_pose(waypoints[self.i])
+        objective_position = goal_pose(waypoints[self.i]).target_pose.pose.position
         dist = distance(current_position, objective_position)
         # print 'distance to target = ', dist
         if dist < 0.5:

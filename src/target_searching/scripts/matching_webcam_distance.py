@@ -105,7 +105,7 @@ class LogoDetector:
             cv2.imshow(meth, frame)
 
             # print loc_logo
-            if res_logo.max() > 0.45 or res_ar.max() > 0.6:
+            if res_logo.max() > 0.45 or res_ar.max() > 0.75:
             # if res_logo.max() > 0.45:
                 self.pub.publish('True')
             else:
@@ -123,8 +123,8 @@ class LogoDetector:
             frame = self.image.copy()
             self.detection(frame)
 
-            # if cv2.waitKey(1) & 0xff == ord('q'):
-                # break
+            if cv2.waitKey(1) & 0xff == ord('q'):
+                break
             self.rate.sleep()
 
 
