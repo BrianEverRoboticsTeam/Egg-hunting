@@ -1,7 +1,8 @@
-import rospy
-import time
+import rospy, time
+import numpy as np
 from smach import State, StateMachine
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
 from std_srvs.srv import Empty
 from math import pi
 
@@ -22,6 +23,8 @@ class Localization(State):
         rospy.wait_for_service('global_localization')
         self.global_localization = rospy.ServiceProxy('global_localization',
                 Empty)
+        self.scan_sub = rospy.Subscriber('scan', LaserScan, self.scan_callback)
+        self.central_range = 0;
         # rospy.wait_for_service('move_base/clear_unknown_space')
         # self.clear_unknown_space = rospy.ServiceProxy(
         #         'move_base/clear_unknown_space', Empty)
@@ -39,6 +42,22 @@ class Localization(State):
         timelimit = getTimeSafe() + rospy.Duration(duration)
         while getTimeSafe() < timelimit:
             tw.angular.z = speed
+            if not np.isnan(self.central_range) and self.central_range > 3:
+                tw.linear.x = 0.1
             self.twist_pub.publish(tw)
 
         return 'success'
+
+    def scan_callback(self, msg):
+        scan_data = msg.ranges
+        self.central_range = scan_data[320]
+
+        # for distance in scan_data:
+        #     if not np.isnan(distance):
+        #         valid_scan_data.append(distance)
+        #
+        # if  len(valid_scan_data)<190 or min(valid_scan_data) < 0.5:
+        #     self.min_distance_ahead = 0.5
+        #     self.stopped = True
+        # else:
+        #     self.min_distance_ahead = min(valid_scan_data)

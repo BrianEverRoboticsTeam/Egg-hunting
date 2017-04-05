@@ -1,4 +1,5 @@
 <launch>
 	<include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
-	<node name="precise_control" pkg="easten_egg_hunting" type="precise_control.py" /> 
+	<include file="$(find sound_play)/soundplay_node.launch"/>
+	<node name="precise_control" pkg="easten_egg_hunting" type="precise_control.py" />
 </launch>
