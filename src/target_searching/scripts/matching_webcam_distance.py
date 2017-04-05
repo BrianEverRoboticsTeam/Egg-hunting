@@ -9,6 +9,9 @@ from sensor_msgs.msg import Image
 import cPickle as pickle
 import os
 
+showVideo = False
+root = os.path.dirname(os.path.abspath(__file__))
+
 class LogoDetector:
     def __init__(self):
         self.rate = rospy.Rate(10)
@@ -20,8 +23,6 @@ class LogoDetector:
         self.bridge = cv_bridge.CvBridge()
         self.dist = None
         self.image = None
-
-        root = os.path.dirname(os.path.abspath(__file__))
 
         # Prepare templates at multiple scales:
         self.template_original = cv2.imread(root+'/logo.png',0)
@@ -54,31 +55,56 @@ class LogoDetector:
         # All the 6 methods for comparison in a list
         # methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
                     # 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
-        # methods = ['cv2.TM_CCOEFF']
-        methods = ['cv2.TM_CCOEFF_NORMED']
-        for meth in methods:
-            method = eval(meth)
+        # methods = ['cv2.TM_CCOEFF_NORMED']
 
-            dist = self.dist
-            # print 'dist:', dist
 
-            w = int(round(self.kw / dist))
-            h = int(round(self.kh / dist))
+        method = eval('cv2.TM_CCOEFF_NORMED')
 
-            w_ar = int(round(self.kw_ar / dist))
-            h_ar = int(round(self.kh_ar / dist))
+        # Ultrasonic reading distance:
+        dist = self.dist
+        # print 'dist:', dist
 
-            if h >= gray.shape[0] or w >= gray.shape[1] or h < 20 or w < 20:
-                # cv2.imshow(meth, frame)
-                self.pub.publish('False')
-                continue
+        foundTarget = False
 
-            if h_ar >= gray.shape[0] or w_ar >= gray.shape[1] or h_ar < 20 or w_ar < 20:
-                # cv2.imshow(meth, frame)
-                self.pub.publish('False')
-                continue
+        # Calculate the size of UA logo template based on distance:
+        w = int(round(self.kw / dist))
+        h = int(round(self.kh / dist))
 
-            # test rectangle:
+        # Apply template matching of ua logo:
+        logoThreshold = 0.45
+        if h < gray.shape[0] and w < gray.shape[1] and h > 20 and w > 20:
+            logo = imresize(self.logo, (h, w))
+            res_logo = cv2.matchTemplate(gray, logo, method)
+            if res_logo.max() > logoThreshold:
+                self.pub.publish('True')
+                foundTarget = True
+            if showVideo:
+                loc_logo = np.where(res_logo > logoThreshold)
+                for pt in zip(*loc_logo[::-1]):
+                    cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
+
+        # Calculate the size of AR tag template based on distance:
+        w_ar = int(round(self.kw_ar / dist))
+        h_ar = int(round(self.kh_ar / dist))
+
+        # Apply template matching of AR Tag:
+        arThreshold = 0.75
+        if h_ar < gray.shape[0] and w_ar < gray.shape[1] and h_ar > 20 and w_ar > 20:
+            ar_tag = imresize(self.ar_tag, (h_ar, w_ar))
+            res_ar = cv2.matchTemplate(gray, ar_tag, method)
+            if res_ar.max() > arThreshold:
+                self.pub.publish('True')
+                foundTarget = True
+            if showVideo:
+                loc_ar = np.where(res_ar > arThreshold)
+                for pt in zip(*loc_ar[::-1]):
+                    cv2.rectangle(frame, pt, (pt[0]+w_ar, pt[1]+h_ar), (0,128,255), 2)
+
+        if not foundTarget:
+            self.pub.publish('False')
+
+        # Distance rectangle:
+        if showVideo:
             tx0 = int(round(320-w/2))
             tx1 = int(round(320+w/2))
             ty0 = int(round(240-h/2))
@@ -87,29 +113,23 @@ class LogoDetector:
             tp1 = tx1, ty1
             cv2.rectangle(frame, tp0, tp1, (0,255,0), 2)
 
-            # template = imresize(template, (h, w))
-            logo = imresize(self.logo, (h, w))
-            ar_tag = imresize(self.ar_tag, (h_ar, w_ar))
+        # template = imresize(template, (h, w))
+        # logo = imresize(self.logo, (h, w))
+        # ar_tag = imresize(self.ar_tag, (h_ar, w_ar))
 
-            res_logo = cv2.matchTemplate(gray, logo, method)
-            res_ar = cv2.matchTemplate(gray, ar_tag, method)
+        # res_logo = cv2.matchTemplate(gray, logo, method)
+        # res_ar = cv2.matchTemplate(gray, ar_tag, method)
+
+        # Draw target rectangles:
+        if showVideo:
+            cv2.imshow('side detector', frame)
 
 
-            loc_logo = np.where(res_logo > 0.45)
-            for pt in zip(*loc_logo[::-1]):
-                cv2.rectangle(frame, pt, (pt[0]+w, pt[1]+h), (0,0,255), 2)
-
-            loc_ar = np.where(res_ar > 0.6)
-            for pt in zip(*loc_ar[::-1]):
-                cv2.rectangle(frame, pt, (pt[0]+w_ar, pt[1]+h_ar), (0,128,255), 2)
-            # cv2.imshow(meth, frame)
-
-            # print loc_logo
-            if res_logo.max() > 0.45 or res_ar.max() > 0.75:
-            # if res_logo.max() > 0.45:
-                self.pub.publish('True')
-            else:
-                self.pub.publish('False')
+        # print loc_logo
+        # if res_logo.max() > 0.45 or res_ar.max() > 0.75:
+            # self.pub.publish('True')
+        # else:
+            # self.pub.publish('False')
 
 
 
@@ -123,10 +143,10 @@ class LogoDetector:
             frame = self.image.copy()
             self.detection(frame)
 
-            # if cv2.waitKey(1) & 0xff == ord('q'):
-                # break
+            if showVideo:
+                if cv2.waitKey(1) & 0xff == ord('q'):
+                    break
             self.rate.sleep()
-
 
         cv2.destroyAllWindows()
 

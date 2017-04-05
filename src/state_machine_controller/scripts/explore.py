@@ -86,7 +86,8 @@ class Explore(State):
                 estmated_time = int(round(dist_to_goal / 0.4))
 
                 # Set the timeout related to the estimated time to goal
-                timeout = getTimeSafe() + rospy.Duration(estmated_time+5)
+                # timeout = getTimeSafe() + rospy.Duration(estmated_time+5)
+                timeout = getTimeSafe() + rospy.Duration(25)
 
                 while True:
                     if self.arrived:
