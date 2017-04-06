@@ -24,6 +24,7 @@ class UnDocking(State):
         self.stopped = False
         tw = Twist()
         tw.linear.x = -0.23
+        # tw.linear.x = -0.7
         self.controller.publish(tw)
         while not self.stopped:
             self.rate.sleep()

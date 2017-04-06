@@ -31,7 +31,7 @@ class Localization(State):
 
     def execute(self, userdata):
         # reset AMCL localizer
-        self.clear_costmaps()
+        # self.clear_costmaps()
         self.global_localization()
         time.sleep(0.5) # wait for system to process
 
@@ -46,6 +46,7 @@ class Localization(State):
                 # tw.linear.x = 0.25
             self.twist_pub.publish(tw)
 
+        self.clear_costmaps()
         return 'success'
 
     def scan_callback(self, msg):

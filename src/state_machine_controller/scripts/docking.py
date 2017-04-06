@@ -27,7 +27,7 @@ class Docking(State):
         sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/smb2_grow.wav"
         # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
         soundhandle.playWave(sound_src)
-        rospy.sleep(1)
+        rospy.sleep(0.5)
         return 'success'
 
     def controller_callback(self, msg):

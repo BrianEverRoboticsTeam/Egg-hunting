@@ -97,7 +97,7 @@ class PreDocking(State):
             self.rate.sleep()
         print("[Debug] preDocking precise command done")
 
-        time.sleep(2)
+        time.sleep(1)
         self.stopped = False
         while not self.stopped:
             if self.min_distance_ahead > 3:
@@ -111,7 +111,7 @@ class PreDocking(State):
             self.twist_pub.publish(self.tw)
             self.rate.sleep()
         print(self.target_type)
-        time.sleep(3)
+        time.sleep(0.5)
         if self.target_type!=None:
             self.sound_control.send_sound(self.target_type)
             return 'success'

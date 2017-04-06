@@ -30,6 +30,17 @@ waypoints = [
     [(6.92, 2.12, 0.0), (0.0, 0.0, 0.71, 0.71)]
 ]
 
+# waypoints = [
+    # [(-0.91, 2.27, 0.0), (0.0, 0.0, -0.95, 0.31)],
+
+    # [(-2.45, -1.25, 0.0), (0.0, 0.0, -0.36, 0.93)],
+
+    # [(7.20, -1.44, 0.0), (0.0, 0.0, 0.35, 0.94)],
+
+    # [(7.16, 2.53, 0.0), (0.0, 0.0, 0.99, 0.01)]
+# ]
+
+
 def goal_pose(pose):
     goal_pose = MoveBaseGoal()
     goal_pose.target_pose.header.frame_id = 'map'
@@ -71,6 +82,11 @@ class Explore(State):
         self.last_docking_position = None
         self.rate = rospy.Rate(10)
 
+        # self.ultrasonic = rospy.Subscriber('ultrasonic', String,
+                # self.ultrasonic_cb)
+        # self.ultrasonic_dist = None
+        # self.ultrasonic_dock = None
+
     def execute(self, userdata):
         soundhandle = SoundClient()
         rospy.sleep(0.5)
@@ -92,8 +108,8 @@ class Explore(State):
                     self.rate.sleep()
                 # Calculate the estimated distance and time to goal
                 # assume moving speed is 0.4
-                dist_to_goal = distance(self.current_position, goal_position.target_pose.pose.position)
-                estmated_time = int(round(dist_to_goal / 0.4))
+                # dist_to_goal = distance(self.current_position, goal_position.target_pose.pose.position)
+                # estmated_time = int(round(dist_to_goal / 0.4))
 
                 # Set the timeout related to the estimated time to goal
                 # timeout = getTimeSafe() + rospy.Duration(estmated_time+5)
@@ -124,6 +140,7 @@ class Explore(State):
                         except KeyError:
                             first_time = True
 
+                        # if (first_time or dist_to_last > 1.5) and self.ultrasonic_dock != None and self.ultrasonic_dock < 3000:
                         if first_time or dist_to_last > 1.5:
                             # Start docking
                             # self.last_docking_position = self.current_position
@@ -156,3 +173,7 @@ class Explore(State):
     def side_detector_callback(self, msg):
         if msg.data == 'True':
             self.found = True
+            # self.ultrasonic_dock = self.ultrasonic_dist
+
+    # def ultrasonic_cb(self, msg):
+        # self.ultrasonic_dist = int(msg.data)
