@@ -25,13 +25,13 @@ class Localization(State):
                 Empty)
         self.scan_sub = rospy.Subscriber('scan', LaserScan, self.scan_callback)
         self.central_range = 0;
-        # rospy.wait_for_service('move_base/clear_unknown_space')
-        # self.clear_unknown_space = rospy.ServiceProxy(
-        #         'move_base/clear_unknown_space', Empty)
+        rospy.wait_for_service('move_base/clear_costmaps')
+        self.clear_costmaps = rospy.ServiceProxy(
+                'move_base/clear_costmaps', Empty)
 
     def execute(self, userdata):
         # reset AMCL localizer
-        # self.clear_unknown_space()
+        self.clear_costmaps()
         self.global_localization()
         time.sleep(0.5) # wait for system to process
 
@@ -42,8 +42,8 @@ class Localization(State):
         timelimit = getTimeSafe() + rospy.Duration(duration)
         while getTimeSafe() < timelimit:
             tw.angular.z = speed
-            if not np.isnan(self.central_range) and self.central_range > 3:
-                tw.linear.x = 0.1
+            # if not np.isnan(self.central_range) and self.central_range > 3:
+                # tw.linear.x = 0.25
             self.twist_pub.publish(tw)
 
         return 'success'
