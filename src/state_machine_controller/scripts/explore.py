@@ -88,9 +88,14 @@ class Explore(State):
         # self.ultrasonic_dock = None
 
     def execute(self, userdata):
+
+        import os
+        root = os.path.dirname(os.path.abspath(__file__))
+        sound_src = root + '/super-mario-bros.wav'
+
         soundhandle = SoundClient()
         rospy.sleep(0.5)
-        sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
+        # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
         soundhandle.playWave(sound_src)
         # rospy.sleep(1)
 
