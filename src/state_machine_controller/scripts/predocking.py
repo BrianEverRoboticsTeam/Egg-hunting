@@ -19,8 +19,11 @@ class SoundController():
     def send_sound(self, type):
         sound = Sound()
 
-        # soundhandle = SoundClient()
-        # rospy.sleep(0.5)
+        soundhandle = SoundClient()
+        rospy.sleep(0.5)
+        import os
+        root = os.path.dirname(os.path.abspath(__file__))
+
         #
         # # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/smb2_grow.wav"
         # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
@@ -28,6 +31,10 @@ class SoundController():
         # rospy.sleep(1)
 
         if type=="UA_LOGO":
+            # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
+            sound_src = root + "/super-mario-bros.wav"
+            soundhandle.playWave(sound_src)
+
             sound.value = 1
             self.sound_pub.publish(sound)
             time.sleep(0.3)
@@ -39,6 +46,10 @@ class SoundController():
             time.sleep(1)
 
         elif type=="AR_TAG":
+            # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/smb2_1up.wav"
+            sound_src = root + "/smb2_1up.wav"
+            soundhandle.playWave(sound_src)
+
             sound.value = 0
             self.sound_pub.publish(sound)
             time.sleep(0.3)
