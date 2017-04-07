@@ -31,8 +31,8 @@ class SoundController():
         # rospy.sleep(1)
 
         if type=="UA_LOGO":
-            # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/super-mario-bros.wav"
-            sound_src = root + "/super-mario-bros.wav"
+            # sound_src = "/home/jimmy/Documents/CMPUT412/Egg-hunting/smb2_grow.wav"
+            sound_src = root + "/smb2_grow.wav"
             soundhandle.playWave(sound_src)
 
             sound.value = 1

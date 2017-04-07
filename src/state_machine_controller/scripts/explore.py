@@ -146,7 +146,7 @@ class Explore(State):
                             first_time = True
 
                         # if (first_time or dist_to_last > 1.5) and self.ultrasonic_dock != None and self.ultrasonic_dock < 3000:
-                        if first_time or dist_to_last > 1.5:
+                        if first_time or dist_to_last > 0.75:
                             # Start docking
                             # self.last_docking_position = self.current_position
                             self.arrived = False
