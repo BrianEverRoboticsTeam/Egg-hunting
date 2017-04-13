@@ -1,6 +1,8 @@
 # Egg-hunting
 Course work for CMPUT 412 - Experimental Mobile Robotics (Winter 2017), Competition 4 @ University of Alberta, Canada 
 
+Full documentations could be found at [here(competition 4)](https://brainever.wordpress.com/2017/04/11/egg-hunting-attempt-1/) and [here(competition 5)](https://brainever.wordpress.com/2017/04/11/egg-hunting-attempt-2/).
+
 # Quick Start
 
 Copy the following commands and paste them into terminal and they should magically work.
