@@ -3,7 +3,7 @@ Course work for CMPUT 412 - Experimental Mobile Robotics (Winter 2017), Competit
 
 Full documentations could be found at [here(competition 4)](https://brainever.wordpress.com/2017/04/11/egg-hunting-attempt-1/) and [here(competition 5)](https://brainever.wordpress.com/2017/04/11/egg-hunting-attempt-2/).
 
-# Quick Start
+# Setup
 
 Copy the following commands and paste them into terminal and they should magically work.
 ```
@@ -37,27 +37,33 @@ source devel/setup.bash
 
 Now you are good to go.
 
-# Testing Main Control
+# Launch
 
 terminal 1
 ```
-roslaunch easten_egg_hunting vision_docking.launch 
+roslaunch state_machine_controller control.launch
 ```
 
 terminal 2
 ```
-roslaunch tag_detaction usb_cam2.launch 
+roslaunch state_machine_controller side_view.launch 
 ```
 
 terminal 3
 ```
-rosrun target_searching ar_search.py 
+roslaunch state_machine_controller navi.launch 
 ```
 
 terminal 4
 ```
-/Egg-hunting/src/tag_detaction/script$ ./ar_detect.py 
+roslaunch state_machine_controller front_view.launch 
 ```
 
+terminal 5
+```
+rosrun state_machine_controller state_machine.py
+```
+
+**Please note that**, you must launch front_view.launch after navi.launch have been successfully launch. Otherwise, the 3d_sensor might not work properly. 
 
 
