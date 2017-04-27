@@ -39,31 +39,31 @@ Now you are good to go.
 
 # Launch
 
-terminal 1
+terminal 1: launch turtlebot moving base driver and precise controller
 ```
 roslaunch state_machine_controller control.launch
 ```
 
-terminal 2
+terminal 2: launch ultrasonic sensor, side view canmera, and template matching algorithm
 ```
 roslaunch state_machine_controller side_view.launch 
 ```
 
-terminal 3
+terminal 3: launch kinect driver and AMCL navigation
 ```
 roslaunch state_machine_controller navi.launch 
 ```
 
-terminal 4
+terminal 4: launch visual algorithm that use front view camera
 ```
 roslaunch state_machine_controller front_view.launch 
 ```
 
-terminal 5
+terminal 5: launch main state machine of Egg Hunting
 ```
 rosrun state_machine_controller state_machine.py
 ```
 
-**Please note that**, you must launch front_view.launch after navi.launch have been successfully launch. Otherwise, the 3d_sensor might not work properly. 
+**Please note that**, you must launch front_view.launch after navi.launch have been successfully launch. Otherwise, the kinect driver might not work properly. 
 
 
